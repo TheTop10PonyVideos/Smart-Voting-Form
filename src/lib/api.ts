@@ -1,6 +1,6 @@
 // API request/response types and client side functions to make api calls to the server
 
-import { Flag, VideoDataClient } from "./types"
+import { Flag, VideoDataClient, VideoPlatform, VideoStatusSettings } from "./types"
 
 export type APIValidateRequestBody = {
     link: string
@@ -19,7 +19,7 @@ export type APIValidateResponseBody = {
  * @returns An array of eligibility flags, and, if present, video metadata associated with the link
  */
 export async function validate(link: string, index?: number): Promise<APIValidateResponseBody> {
-    const body: APIValidateRequestBody = { link, index }
+    const body = { link, index } satisfies APIValidateRequestBody
 
     const res = await fetch("/api/ballot/validate", {
         method: "POST",
@@ -137,9 +137,38 @@ export type APILabelUpdateRequestBody = { label_updates: Flag[] }
  * @param label_updates New label data to replace corresponding existing ones. Should never contain manual labels
  */
 export async function updateLabels(label_updates: Flag[]) {
-    const body: APILabelUpdateRequestBody = { label_updates }
+    const body = { label_updates } satisfies APILabelUpdateRequestBody
 
     const res = await fetch("/api/label_update", {
+        method: "POST",
+        body: JSON.stringify(body)
+    })
+
+    return res
+}
+
+
+
+export type APIAnnotateVideoRequestBody = {
+    status: VideoStatusSettings,
+    whitelisted: boolean,
+    annotation: string,
+    video_id: string,
+    platform: VideoPlatform
+}
+
+/**
+ * Annotate a video to override its auto assigned eligibility status and notes that are shown to the voters.
+ * @param video_id The video's id
+ * @param platform The platform hosting the video
+ * @param status A FlagStatus or "default" to signal that tnhe manual label shouldn't be used
+ * @param whitelisted Whether the video should appear in search results
+ * @param annotation The reason for the eligibility annotation or source url if status is "alternative"
+ */
+export async function annotateVideo(video_id: string, platform: VideoPlatform, status: VideoStatusSettings, whitelisted: boolean, annotation: string) {
+    const body = { video_id, platform, status, whitelisted, annotation } satisfies APIAnnotateVideoRequestBody
+
+    const res = await fetch("/api/pool/annotate_video", {
         method: "POST",
         body: JSON.stringify(body)
     })

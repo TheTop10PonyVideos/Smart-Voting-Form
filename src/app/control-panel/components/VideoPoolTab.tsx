@@ -1,20 +1,37 @@
 "use client";
 
-import { VideoPoolItem } from "@/lib/types";
+import { VideoPoolItem, VideoStatusSettings } from "@/lib/types";
 import { ChangeEventHandler, Dispatch, SetStateAction, useEffect, useState } from "react";
 import styles from "../page.module.css"
 import { getVideoLinkTemp } from "@/lib/util";
 import { stampMap } from "@/lib/labels";
 import Image from "next/image";
+import { annotateVideo } from "@/lib/api";
 
-function Overlay({ videoItem, setOverlay }: { videoItem: VideoPoolItem, setOverlay: Dispatch<SetStateAction<VideoPoolItem | null>> }) {
-  const manual = videoItem.flags.find(f => f.trigger === "manual")
-  const [eligibility, setEligibility] = useState(manual && manual.type !== "disabled" ? manual.type.replace(/./, c => c.toUpperCase()) : "Default")
+function Settings({ videoItem, setSelectedVideo }: { videoItem: VideoPoolItem, setSelectedVideo: Dispatch<SetStateAction<VideoPoolItem | null>> }) {
+  let manual_label = videoItem.flags.find(f => f.trigger === "manual")
+  if (manual_label?.type === "disabled")
+    manual_label = undefined
 
-  const radioBtnChange: ChangeEventHandler<HTMLInputElement> = e => setEligibility(e.target.value)
+  const [status, setStatus] = useState(manual_label?.type.replace(/./, c => c.toUpperCase()) || "Default")
+  const [whitelisted, setWhitelisted] = useState(videoItem.whitelisted)
+  const [inputs, setInputs] = useState({ eligibility: manual_label?.details || "", source: videoItem.source })
+
+  const inputType = status === "reupload" ? "source" : "eligibility"
+
+  const radioBtnChange: ChangeEventHandler<HTMLInputElement> = e => setStatus(e.target.value)
+  const noteChange: ChangeEventHandler<HTMLTextAreaElement> = e => setInputs(
+    { ...inputs, [inputType]: e.target.value }
+  )
+  const save = async () => {
+    await annotateVideo(videoItem.id, videoItem.platform, status as VideoStatusSettings, whitelisted, inputs[inputType])
+  }
+  const hide = () => {}
+
+  const default_selected = status === "default"
 
   return (
-    <div className={styles.overlay} onClick={e => {if (e.currentTarget === e.target) setOverlay(null)}}>
+    <div className={styles.overlay} onClick={e => {if (e.currentTarget === e.target) setSelectedVideo(null)}}>
       <div className={styles.ItemSettingsContainer}>
         <div className={styles.thumbnailTitle}>
           <img src={videoItem.thumbnail}
@@ -27,18 +44,40 @@ function Overlay({ videoItem, setOverlay }: { videoItem: VideoPoolItem, setOverl
 
         <div className={styles.overlayOptions}>
           <div>
-            <input id="rbtn1" name="eligibility" value="Eligible" checked={eligibility === "Eligible"} type="radio" onChange={radioBtnChange}/>
-            <label htmlFor="rbtn1">Eligible</label>
-            <input id="rbtn2" name="eligibility" value="Default" checked={eligibility === "Default"} type="radio" onChange={radioBtnChange}/>
-            <label htmlFor="rbtn2">Default</label>
-            <input id="rbtn3" name="eligibility" value="Ineligible" checked={eligibility === "Ineligible"} type="radio" onChange={radioBtnChange}/>
-            <label htmlFor="rbtn3">Ineligible</label>
+            <input id="whitelist_btn" type="checkbox" checked={whitelisted} onChange={e => setWhitelisted(e.target.checked)}/>
+            <label htmlFor="whitelist_btn">Whitelist</label>
           </div>
-          
-          <textarea placeholder="Why is this video eligible or ineligible?" value={manual?.details}/>
+          <div>
+            <input id="rbtn1" name="status" value="eligible" checked={status === "eligible"} type="radio" onChange={radioBtnChange}/>
+            <label htmlFor="rbtn1">Eligible</label>
+            <input id="rbtn2" name="status" value="default" checked={status === "default"} type="radio" onChange={radioBtnChange}/>
+            <label htmlFor="rbtn2">Default</label>
+            <input id="rbtn3" name="status" value="ineligible" checked={status === "ineligible"} type="radio" onChange={radioBtnChange}/>
+            <label htmlFor="rbtn3">Ineligible</label>
+            <input id="rbtn4" name="status" value="reupload" checked={status === "reupload"} type="radio" onChange={radioBtnChange}/>
+            <label htmlFor="rbtn4">Reupload</label>
+          </div>
+
+          <textarea disabled={default_selected} onChange={noteChange} placeholder={
+            status === "reupload" ?
+              "Link to the original upload" :
+            `Why is this video ${status}?`
+          } value={
+            default_selected ?
+              videoItem.flags
+                .filter(f => f.trigger !== "manual")
+                .reduce((prev, cur) => prev + "- " + cur.details + "\n", "") ||
+                "No issues found" :
+
+            status === "reupload" ?
+              inputs.source :
+            inputs.eligibility
+          }/>
+
           <div style={{display: "flex",gap: "20px"}}>
-            <button>Save</button>
-            <button>Back</button>
+            <button onClick={hide}>{videoItem.hidden ? "Unhide" : "Hide"}</button>
+            <button onClick={save}>Save</button>
+            <button onClick={() => setSelectedVideo(null)}>Back</button>
           </div>
         </div>
       </div>
@@ -98,7 +137,7 @@ export default function VideoPoolTab() {
       <VideoTile key={i} item={item} i={i} onClick={settings}/>
     ))}
     </div>
-    {selected !== null && <Overlay videoItem={selected} setOverlay={setSelected}/>}
+    {selected !== null && <Settings videoItem={selected} setSelectedVideo={setSelected}/>}
     </>
   )
 }
