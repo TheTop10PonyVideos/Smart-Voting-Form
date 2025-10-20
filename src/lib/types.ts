@@ -15,7 +15,9 @@ export type VideoPlatform =
     "Odysee" |
     "Newgrounds"
 
-export type VideoDataClient = Omit<video_metadata, "upload_date" | "duration" | "whitelisted"> & { link: string }
+export type VideoDataClient = Omit<video_metadata, "upload_date" | "duration" | "whitelisted" | "hidden"> & { link: string }
+
+export type VideoStatusSettings = "eligible" | "default" | "ineligible" | "reupload"
 
 /**
  * Used to signify a videos eligibility status
@@ -57,4 +59,9 @@ export type YTDLPItems = {
     duration: number | undefined
 }
 
-export type VideoPoolItem = Omit<video_metadata, "upload_date"> & { votes: number, flags: Flag[], upload_date: string }
+export type VideoPoolItem = Omit<video_metadata, "upload_date" | "platform"> & {
+    votes: number,
+    flags: Flag[],
+    upload_date: string,
+    platform: VideoPlatform
+}

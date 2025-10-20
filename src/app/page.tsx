@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import VoteForm from "./components/voting_form";
 import { getBallotItems } from "@/lib/database";
 import styles from "./page.module.css"
-import { toClientVideoMetadata } from "@/lib/util";
+import { getVotingPeriod, toClientVideoMetadata } from "@/lib/util";
 import { video_check } from "@/lib/vote_rules";
 import { getCliLabels } from "@/lib/labels";
 
@@ -32,7 +32,7 @@ export default async function Home() {
 
   return (
     <div className={styles.page}>
-      <VoteForm initial_entries={initial_entries} cli_labels={getCliLabels()}/>
+      <VoteForm initial_entries={initial_entries} cli_labels={getCliLabels()} votingPeriod={getVotingPeriod()}/>
     </div>
   )
 }

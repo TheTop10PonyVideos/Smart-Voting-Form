@@ -14,6 +14,8 @@ CREATE TABLE video_metadata (
 	duration INT,
 	platform TEXT NOT NULL,
 	whitelisted BOOL NOT NULL DEFAULT FALSE,
+	hidden BOOL NOT NULL DEFAULT FALSE,
+	source TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY (id, platform)
 );
 
@@ -56,6 +58,6 @@ CREATE TABLE manual_label (
 	video_id TEXT,
 	platform TEXT,
 	label TEXT,
-	reason TEXT,
-	PRIMARY KEY (video_id, platform, label, reason)
+	content TEXT,
+	PRIMARY KEY (video_id, platform)
 );

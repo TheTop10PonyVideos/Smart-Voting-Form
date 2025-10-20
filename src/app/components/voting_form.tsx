@@ -13,10 +13,11 @@ import { client_labels } from "@/lib/labels";
 
 interface Props {
   cli_labels: client_labels,
-  initial_entries: BallotEntryField[]
+  initial_entries: BallotEntryField[],
+  votingPeriod: (string | number)[]
 }
 
-export default function VoteForm({ cli_labels, initial_entries }: Props) {
+export default function VoteForm({ cli_labels, initial_entries, votingPeriod }: Props) {
   const [voteFields, setVoteFields] = useState<BallotEntryField[]>(initial_entries)
   const [warning, setWarning] = useState(false)
   const inputTimeouts = useRef<NodeJS.Timeout[]>([])
@@ -58,7 +59,7 @@ export default function VoteForm({ cli_labels, initial_entries }: Props) {
 
     deletionTimeouts.current[field_index] = setTimeout(() => {
       removeBallotItem(field_index)
-    }, 1000);
+    }, 1000)
   }
 
   // Handler for changes to the ballot entry fields
@@ -154,10 +155,11 @@ export default function VoteForm({ cli_labels, initial_entries }: Props) {
           </div>
         }
         <div className={styles.headerfield}>
-          <label>Test Voting Form</label>
+          <label>Voting for The Top 10 Pony Videos of {votingPeriod[0]}</label>
           <p>
-            This form aims to make managing and submitting votes easier. This is done by showing video details with each vote and checking their eligibility in advance.<br/><br/>
-            Note that only basic checks are done by the form, so be sure the videos&apos; content also aligns with the rules.<br/><br/>
+            This form is made to make voting easier by displaying video details with each vote and by checking their preliminary eligibility in advance.<br/><br/>
+            To submit your votes, first click the <b>Export Votes</b> button at the bottom. This will forward all your votes to the <a className={styles.link} href="https://docs.google.com/forms/d/e/1FAIpQLSdVi1gUmI8c2nBnYde7ysN8ZJ79EwI5WSBTbHKqIgC7js0PYg/viewform">main Google Form</a> where you can then submit them.<br/><br/>
+            Note: Currently only basic checks are done, so be sure the videos&apos; content also aligns with the rules.<br/><br/>
             Symbol Meanings:<br/>
             ✅ = Eligible<br/>
             ⚠️ = Maybe ineligible<br/>
@@ -184,5 +186,5 @@ export default function VoteForm({ cli_labels, initial_entries }: Props) {
         <button type="submit" value={should_warn ? "warn" : "export" } className={styles.submitButton}>Export Votes</button>
       </form>
     </>
-  );
+  )
 }

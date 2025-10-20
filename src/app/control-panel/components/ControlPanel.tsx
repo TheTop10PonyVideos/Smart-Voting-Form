@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from "react";
-import LabelsTab from "./LabelsTab";
-import DataTab from "./DataTab";
-import VideoPoolTab from "./VideoPoolTab";
+import { Suspense, useState } from "react";
 import styles from "../page.module.css"
 import { video_metadata } from "@/generated/prisma";
 import { Flag } from "@/lib/types";
+import dynamic from "next/dynamic";
+
+const DataTab = dynamic(() => import("./DataTab"))
+const LabelsTab = dynamic(() => import("./LabelsTab"))
+const VideoPoolTab = dynamic(() => import("./VideoPoolTab"))
 
 const tabs = ["Data", "Labels", "Pool"]
 
@@ -34,11 +36,13 @@ export default function ControlPanel({ labelConfigs, videoPool0 }: Props) {
         ))}
       </div>
 
+      <Suspense fallback={<div>Loading...</div>}>
       {
         activeTab === "Data" && <DataTab /> ||
         activeTab === "Labels" && <LabelsTab labelSettings={labelConfigs}/> ||
         activeTab === "Pool" && <VideoPoolTab />
       }
+      </Suspense>
     </div>
   )
 }

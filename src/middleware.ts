@@ -18,4 +18,4 @@ export default function middleware(request: NextRequest) {
 // Only running middleware for regular pages
 export const config = {
   matcher: ["/((?!api|_next|favicon.ico|.well-known).*)"],
-};
+}

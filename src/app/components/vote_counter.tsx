@@ -3,9 +3,9 @@ import styles from "../page.module.css";
 import { client_labels, labelStamp } from "@/lib/labels";
 
 interface Props {
-  cli_labels: client_labels,
-  eligibleCount: number;
-  uniqueCreatorCount: number;
+  cli_labels: client_labels
+  eligibleCount: number
+  uniqueCreatorCount: number
 }
 
 export default function VoteCounter({ cli_labels, eligibleCount, uniqueCreatorCount }: Props) {

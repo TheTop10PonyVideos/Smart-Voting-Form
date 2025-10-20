@@ -37,12 +37,15 @@ export default function VoteField({ index, voteData, onChanged, onPaste }: Props
           warnLevel && <>
             <Image src={warnLevel === 1 && "warn.svg" || "x.svg"} alt="" width={25} height={25} />
             <div className={styles.note}>
+              <h3>{warnLevel === 2 ? "Ineligible" : "Maybe Ineligible" }</h3>
               <ul>
                 {voteData.flags.map((flag, i) => <li key={i}>{flag.details}</li>)}
               </ul>
             </div>
-          </> ||
-          <Image src={"checkmark.svg"} alt="" width={25} height={25} />
+          </> || <>
+            <Image src={"checkmark.svg"} alt="" width={25} height={25} />
+            <div className={styles.note2}>Eligible!</div>
+          </>
         )}
       </div>
     </div>

@@ -52,7 +52,7 @@ export function getVideoLinkTemp(data: { platform: string, id: string, uploader_
  */
 export function toClientVideoMetadata(video_metadata: video_metadata): VideoDataClient {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { whitelisted, duration, upload_date, ...clientReceivable } = video_metadata
+    const { whitelisted, duration, upload_date, hidden, ...clientReceivable } = video_metadata
     const withLink = {...clientReceivable, link: getVideoLinkTemp(clientReceivable) }
     return withLink
 }
@@ -86,4 +86,18 @@ export function cliTestLink(input: string, cli_labels: client_labels): false | F
     if (valid.test(input)) return []
     if (link.test(input)) return [cli_labels.unsupported_site]
     return false
+}
+
+/**
+ * Get the time period for which pony videos can be voted from
+ * @returns the period as a list of [Month Name, Year]
+ */
+export function getVotingPeriod() {
+    const now = new Date(Date.now())
+    const day = now.getDate()
+
+    now.setDate(Math.min(day, 10)) // Mar 30 to february would otherwise still result in march bc of day rollover
+    now.setMonth(day > 7 ? now.getMonth() : now.getMonth() - 1)
+
+    return [now.toLocaleString("en-US", { month: "long" }), now.getFullYear()]
 }

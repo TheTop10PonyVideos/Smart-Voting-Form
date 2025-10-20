@@ -12,9 +12,9 @@ model manual_label {
   video_id String
   platform String
   label    String
-  reason   String
+  content  String?
 
-  @@id([video_id, platform, label, reason])
+  @@id([video_id, platform])
 }
 
 model playlist {
@@ -46,6 +46,8 @@ model video_metadata {
   duration      Int?
   platform      String
   whitelisted   Boolean         @default(false)
+  hidden        Boolean         @default(false)
+  source        String          @default("")
   ballot_item   ballot_item[]
   playlist_item playlist_item[]
 

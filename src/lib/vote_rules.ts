@@ -9,7 +9,7 @@ export function video_check(video_metadata: { upload_date: Date, duration: numbe
     const flags: Flag[] = []
 
     const now = new Date(Date.now())
-    const period_offset = now.getDate() > 8 ? 0 : -1 // todo: adjustable in case of extending voting period
+    const period_offset = now.getDate() > 7 ? 0 : -1
     const current_period = (now.getMonth() + period_offset + 12) % 12
     const period_year = now.getFullYear() - +(current_period === 11 && period_offset === -1)
 
