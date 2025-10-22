@@ -6,27 +6,40 @@ import styles from "../page.module.css"
 import { getVideoLinkTemp } from "@/lib/util";
 import { stampMap } from "@/lib/labels";
 import Image from "next/image";
-import { annotateVideo } from "@/lib/api";
+import { annotateVideo } from "@/lib/api/video";
 
 function Settings({ videoItem, setSelectedVideo }: { videoItem: VideoPoolItem, setSelectedVideo: Dispatch<SetStateAction<VideoPoolItem | null>> }) {
   let manual_label = videoItem.flags.find(f => f.trigger === "manual")
   if (manual_label?.type === "disabled")
     manual_label = undefined
 
-  const [status, setStatus] = useState(manual_label?.type.replace(/./, c => c.toUpperCase()) || "Default")
+  const [status, setStatus] = useState(manual_label?.type.replace(/./, c => c.toUpperCase()) || "default")
   const [whitelisted, setWhitelisted] = useState(videoItem.whitelisted)
   const [inputs, setInputs] = useState({ eligibility: manual_label?.details || "", source: videoItem.source })
 
   const inputType = status === "reupload" ? "source" : "eligibility"
 
   const radioBtnChange: ChangeEventHandler<HTMLInputElement> = e => setStatus(e.target.value)
+
   const noteChange: ChangeEventHandler<HTMLTextAreaElement> = e => setInputs(
     { ...inputs, [inputType]: e.target.value }
   )
+
   const save = async () => {
-    await annotateVideo(videoItem.id, videoItem.platform, status as VideoStatusSettings, whitelisted, inputs[inputType])
+    await annotateVideo(videoItem.id, videoItem.platform, status as VideoStatusSettings, inputs[inputType], whitelisted)
+    setSelectedVideo(null)
   }
-  const hide = () => {}
+
+  const hide = () => {
+    const key = `${videoItem.platform} - ${videoItem.id}`
+
+    if (localStorage.getItem(key))
+      localStorage.removeItem(key)
+    else
+      localStorage.setItem(key, "hidden")
+
+    setSelectedVideo(null)
+  }
 
   const default_selected = status === "default"
 
@@ -118,6 +131,7 @@ function VideoTile({ i, item, onClick }: { i: number, item: VideoPoolItem, onCli
   )
 }
 
+// Todo, a show hidden option, and clearing outdated keys from localstorage on first render
 export default function VideoPoolTab() {
   const [pool, setPool] = useState<VideoPoolItem[]>([])
   const [selected, setSelected] = useState<VideoPoolItem | null>(null)
@@ -129,11 +143,12 @@ export default function VideoPoolTab() {
   }, [])
 
   const settings = (item: VideoPoolItem) => setSelected(item)
+  const nonHidden = pool.filter(v => !localStorage.getItem(`${v.platform} - ${v.id}`))
 
   return (
     <>
     <div className={styles.pool}>
-    {pool.map((item, i) => (
+    {nonHidden.map((item, i) => (
       <VideoTile key={i} item={item} i={i} onClick={settings}/>
     ))}
     </div>
