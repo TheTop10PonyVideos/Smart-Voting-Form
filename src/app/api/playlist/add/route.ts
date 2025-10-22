@@ -1,12 +1,13 @@
 import { fetch_metadata } from '@/lib/external'
-import { addPlaylistItem, getUser } from '@/lib/database'
+import { addPlaylistItem } from "@/lib/queries/playlist"
+import { getUser } from "@/lib/queries/user"
 import { toClientVideoMetadata } from '@/lib/util'
 import { NextRequest } from 'next/server'
-import { APIAddRequestBody } from '@/lib/api'
+import { APIAddPIRequestBody } from "@/lib/api/playlist"
 
 // Route for adding items to regular playlists
 export async function POST(req: NextRequest) {
-  const body: APIAddRequestBody = await req.json()
+  const body: APIAddPIRequestBody = await req.json()
   const uid = req.cookies.get("uid")?.value
 
   if (!body.link || !body.playlist_id)

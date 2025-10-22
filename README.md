@@ -55,6 +55,8 @@ A web application with a web front-end for users to vote on videos, and a backen
 * `api`: Directory containing api routes accessible via the /api endpoint
 * `app/[page route]`: Directory containing components (usually client side), css, and page.tsx files (usually server side) used when rendering each page.
 * `lib`: Organized server and client side functionalities often used in multiple files
+* `lib/api`: API request/response types and client side functions to make api calls to the server
+* `lib/queries`: Server side functions for making specific interactions with the database
 * `middleware.ts`: Ensures the page routes have access to the cookies that are attempted to be set on the client.
 
 > `prisma db pull` and `prisma generate` should be used to update schema.prisma and generated code based on the connected database's schema

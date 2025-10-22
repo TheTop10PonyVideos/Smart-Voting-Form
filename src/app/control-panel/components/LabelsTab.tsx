@@ -5,7 +5,7 @@ import styles from "../page.module.css";
 import Image from "next/image";
 import VoteField from "@/app/components/vote_field";
 import { testLink } from "@/lib/util";
-import { updateLabels, validate } from "@/lib/api";
+import { validate, updateLabels } from "@/lib/api/video";
 import { BallotEntryField, Flag } from "@/lib/types";
 import { labels, stampMap } from "@/lib/labels";
 import { ballot_check } from "@/lib/vote_rules";

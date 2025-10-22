@@ -1,8 +1,8 @@
 import { fetch_metadata } from '@/lib/external'
-import { removeBallotItem, setBallotItem } from '@/lib/database'
+import { removeBallotItem, setBallotItem } from "@/lib/queries/ballot"
 import { video_check } from '@/lib/vote_rules'
 import { NextRequest } from 'next/server'
-import { APIValidateRequestBody } from '@/lib/api'
+import { APIValidateRequestBody } from "@/lib/api/video"
 import { toClientVideoMetadata } from '@/lib/util'
 
 // Route for checking an entry in the ballot against the rules, and saving its position
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
   if (body.index !== undefined && uid) {
     if (!metadata)
-      removeBallotItem(uid, body.index!).catch(() => {})
+      removeBallotItem(uid, body.index!).catch()
     else
       await setBallotItem(uid, body.index!, metadata.id, metadata.platform)
   }

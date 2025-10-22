@@ -1,6 +1,6 @@
 import { video_check } from "@/lib/vote_rules";
 import { requireAuth } from "../authorization";
-import { getPool } from "@/lib/database";
+import { getPool } from "@/lib/queries/etc";
 
 async function handler() {
     const pool = await getPool()

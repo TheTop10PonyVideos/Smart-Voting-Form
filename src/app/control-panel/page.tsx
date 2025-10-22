@@ -1,4 +1,4 @@
-import { getLabelConfigs } from "@/lib/database";
+import { getLabelConfigs } from "@/lib/queries/etc";
 import ControlPanel from "./components/ControlPanel";
 import { cookies } from "next/headers";
 import { forbidden } from "next/navigation";

@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import Playlists from "./components/Playlists";
-import { getPlaylists } from "@/lib/database";
+import { getPlaylists } from "@/lib/queries/playlist";
 
 export default async function PlaylistPage() {
   const userCookies = await cookies()

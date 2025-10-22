@@ -1,4 +1,4 @@
-import { getAllData } from "@/lib/database";
+import { getAllData } from "@/lib/queries/etc";
 import { NextRequest } from "next/server"
 import { utils, write } from "xlsx"
 import { requireAuth } from "../authorization";

@@ -7,7 +7,8 @@ import { BallotEntryField } from "@/lib/types";
 import VoteCounter from "./vote_counter";
 import VoteField from "./vote_field";
 import { cliTestLink } from "@/lib/util";
-import { removeBallotItem, validate } from "@/lib/api";
+import { removeBallotItem } from "@/lib/api/ballot";
+import { validate } from "@/lib/api/video";
 import { ballot_check } from "@/lib/vote_rules";
 import { client_labels } from "@/lib/labels";
 

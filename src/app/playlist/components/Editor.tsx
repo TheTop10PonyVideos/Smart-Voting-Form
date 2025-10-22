@@ -6,7 +6,7 @@ import { useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { testLink } from "@/lib/util";
 import { VideoDataClient } from "@/lib/types";
-import { addPlaylistItem, editPlaylistMeta, removePlaylistItem } from "@/lib/api";
+import { addPlaylistItem, editPlaylistMeta, removePlaylistItem } from "@/lib/api/playlist";
 import { randomUUID } from "crypto";
 
 type Props = {

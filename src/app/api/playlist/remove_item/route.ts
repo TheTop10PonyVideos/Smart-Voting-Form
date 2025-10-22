@@ -1,5 +1,6 @@
-import { APIRemovePIRequestBody } from "@/lib/api";
-import { getPlaylist, getUser, removePlaylistItem } from "@/lib/database";
+import { APIRemovePIRequestBody } from "@/lib/api/playlist";
+import { removePlaylistItem, getPlaylist } from "@/lib/queries/playlist";
+import { getUser } from "@/lib/queries/user";
 import { NextRequest, NextResponse } from "next/server";
 
 // Route for removing entries from playlists

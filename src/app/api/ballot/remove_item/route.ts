@@ -1,5 +1,6 @@
-import { APIRemoveBIRequestBody } from "@/lib/api";
-import { getUser, removeBallotItem } from "@/lib/database";
+import { APIRemoveBIRequestBody } from "@/lib/api/ballot";
+import { removeBallotItem } from "@/lib/queries/ballot";
+import { getUser } from "@/lib/queries/user";
 import { NextRequest, NextResponse } from "next/server";
 
 // Route for removing entries from ballots or playlists

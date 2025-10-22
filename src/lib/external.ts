@@ -2,7 +2,7 @@
 
 import { spawn } from "child_process"
 import { YTDLPItems, Flag } from "./types"
-import { getVideoMetadata, saveVideoMetadata } from "./database"
+import { getVideoMetadata, saveVideoMetadata } from "./queries/video"
 import { video_metadata } from "@/generated/prisma"
 import { labels } from "./labels"
 

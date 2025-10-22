@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import VoteForm from "./components/voting_form";
-import { getBallotItems } from "@/lib/database";
+import { getBallotItems } from "@/lib/queries/ballot";
 import styles from "./page.module.css"
 import { getVotingPeriod, toClientVideoMetadata } from "@/lib/util";
 import { video_check } from "@/lib/vote_rules";

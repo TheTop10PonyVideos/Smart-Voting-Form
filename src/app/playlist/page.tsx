@@ -1,4 +1,4 @@
-import { getPlaylist } from "@/lib/database";
+import { getPlaylist } from "@/lib/queries/playlist";
 import { cookies } from "next/headers";
 import { VideoDataClient } from "@/lib/types";
 import { toClientVideoMetadata } from "@/lib/util";

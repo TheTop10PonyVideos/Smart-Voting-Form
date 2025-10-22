@@ -1,5 +1,5 @@
-import { APILabelUpdateRequestBody } from "@/lib/api";
-import { setLabelConfigs } from "@/lib/database";
+import { APILabelUpdateRequestBody } from "@/lib/api/video";
+import { setLabelConfigs } from "@/lib/queries/etc";
 import { updateLabels } from "@/lib/labels";
 import { NextRequest } from "next/server";
 import { requireAuth } from "../authorization";

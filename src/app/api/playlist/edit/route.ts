@@ -1,5 +1,5 @@
-import { APIEditPlaylistRequestBody } from '@/lib/api'
-import { editPlaylist } from '@/lib/database'
+import { APIEditPlaylistRequestBody } from "@/lib/api/playlist"
+import { editPlaylist } from "@/lib/queries/playlist"
 import { NextRequest } from 'next/server'
 
 // Route for modifying playlists' names and descriptions
