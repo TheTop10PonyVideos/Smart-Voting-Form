@@ -162,11 +162,10 @@ async function from_youtube(url: URL, with_annotation: boolean): Promise<video_m
         upload_date: new Date(snippet["publishedAt"]),
         duration: convert_iso8601_duration_to_seconds(iso8601_duration),
         platform: "YouTube",
-        manual_label: null
-    } as video_metadata & { manual_label: null }
+    } as video_metadata
 
     await saveVideoMetadata(video_data)
-    return video_data
+    return  { ...video_data, manual_label: null }
 }
 
 /**
@@ -270,11 +269,10 @@ async function from_other(url: URL, with_annotation: boolean): Promise<video_met
         upload_date: new Date(`${date_str.slice(0, 4)}-${date_str.slice(4, 6)}-${date_str.slice(6)}`),
         duration: response["duration"] || null,
         platform: site.charAt(0).toUpperCase() + site.slice(1),
-        manual_label: null
-    } as video_metadata & { manual_label: null }
+    } as video_metadata
 
     await saveVideoMetadata(video_data)
-    return video_data
+    return { ...video_data, manual_label: null }
 }
 
 /**
