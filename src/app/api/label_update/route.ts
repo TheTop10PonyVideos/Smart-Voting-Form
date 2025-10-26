@@ -1,6 +1,6 @@
 import { APILabelUpdateRequestBody } from "@/lib/api/video";
 import { setLabelConfigs } from "@/lib/queries/etc";
-import { updateLabels } from "@/lib/labels";
+import { revalidateTag } from "next/cache";
 import { NextRequest } from "next/server";
 import { requireAuth } from "../authorization";
 
@@ -8,8 +8,8 @@ import { requireAuth } from "../authorization";
 async function handler(req: NextRequest) {
     const body: APILabelUpdateRequestBody = await req.json()
 
-    await setLabelConfigs(body.label_updates)
-    updateLabels(body.label_updates)
+    await setLabelConfigs(Object.values(body.label_updates))
+    revalidateTag("labels", "max")
 
     return new Response()
 }

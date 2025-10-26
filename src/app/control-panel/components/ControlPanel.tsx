@@ -2,9 +2,9 @@
 
 import { Suspense, useState } from "react";
 import styles from "../page.module.css"
-import { video_metadata } from "@/generated/prisma";
 import { Flag } from "@/lib/types";
 import dynamic from "next/dynamic";
+import { label_key } from "@/lib/labels";
 
 const DataTab = dynamic(() => import("./DataTab"))
 const LabelsTab = dynamic(() => import("./LabelsTab"))
@@ -13,14 +13,11 @@ const VideoPoolTab = dynamic(() => import("./VideoPoolTab"))
 const tabs = ["Data", "Labels", "Pool"]
 
 interface Props {
-  labelConfigs: Flag[]
-  videoPool0: video_metadata[],
+  labelConfigs: Record<label_key, Flag>
 }
 
-export default function ControlPanel({ labelConfigs, videoPool0 }: Props) {
+export default function ControlPanel({ labelConfigs }: Props) {
   const [activeTab, setActiveTab] = useState("Labels")
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [pageVideoPool, setPageVideoPool] = useState(videoPool0)
 
   return (
     <div className={styles.mainContainer}>

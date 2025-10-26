@@ -1,6 +1,7 @@
 // Verbatim
 
 import { video_metadata } from "@/generated/prisma"
+import { flagTypes } from "./labels"
 
 export type VideoPlatform =
     "YouTube" |
@@ -15,7 +16,7 @@ export type VideoPlatform =
     "Odysee" |
     "Newgrounds"
 
-export type VideoDataClient = Omit<video_metadata, "upload_date" | "duration" | "whitelisted" | "hidden"> & { link: string }
+export type VideoDataClient = Omit<video_metadata, "upload_date" | "duration" | "whitelisted"> & { link: string }
 
 export type VideoStatusSettings = "eligible" | "default" | "ineligible" | "reupload"
 
@@ -26,7 +27,7 @@ export type VideoStatusSettings = "eligible" | "default" | "ineligible" | "reupl
  */
 export type Flag = {
     name: string
-    type: "ineligible" | "warn" | "eligible" | "disabled"
+    type: flagTypes
     details: string
     trigger: string
 }

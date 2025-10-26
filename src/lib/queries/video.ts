@@ -3,13 +3,16 @@ import { prisma } from "../prisma";
 import { VideoPlatform, VideoStatusSettings } from "../types";
 
 
-export function getVideoMetadata(id: string, platform: string) {
+export function getVideoMetadata(id: string, platform: VideoPlatform, with_annotation: boolean) {
     return prisma.video_metadata.findUnique({
         where: {
             id_platform: {
                 id: id,
                 platform: platform
             }
+        },
+        include: {
+            manual_label: with_annotation
         }
     })
 }

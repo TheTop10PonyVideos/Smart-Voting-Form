@@ -1,4 +1,6 @@
+import { label_config } from "@/generated/prisma";
 import { Flag, VideoStatusSettings, VideoPlatform, VideoDataClient } from "@/lib/types";
+import { label_key } from "../labels";
 
 
 export type APIValidateRequestBody = {
@@ -31,12 +33,12 @@ export async function validate(link: string, index?: number): Promise<APIValidat
 
 
 
-export type APILabelUpdateRequestBody = { label_updates: Flag[]} 
+export type APILabelUpdateRequestBody = { label_updates: Record<label_key, Flag>} 
 /**
  * Update the label details shown in ballot entries when videos have these labels
  * @param label_updates New label data to replace corresponding existing ones. Should never contain manual labels
  */
-export async function updateLabels(label_updates: Flag[]) {
+export async function updateLabels(label_updates: Record<label_key, Flag>) {
     const body = { label_updates } satisfies APILabelUpdateRequestBody
 
     const res = await fetch("/api/label_update", {

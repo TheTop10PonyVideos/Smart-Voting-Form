@@ -1,10 +1,10 @@
 // Methods for extracting video metadata from external sources
 
 import { spawn } from "child_process"
-import { YTDLPItems, Flag } from "./types"
+import { YTDLPItems, Flag, VideoPlatform } from "./types"
 import { getVideoMetadata, saveVideoMetadata } from "./queries/video"
-import { video_metadata } from "@/generated/prisma"
-import { labels } from "./labels"
+import { manual_label, video_metadata } from "@/generated/prisma"
+import { getLabels } from "./data_cache"
 
 // Variants of youtube domains that might be used
 const youtube_domains = ["m.youtube.com", "www.youtube.com", "youtube.com", "youtu.be"]
@@ -131,16 +131,16 @@ function convert_iso8601_duration_to_seconds(iso8601_duration: string) {
     return total_seconds
 }
 
-async function from_youtube(url: URL): Promise<video_metadata | Flag> {
+async function from_youtube(url: URL, with_annotation: boolean): Promise<video_metadata & { manual_label: manual_label | null } | Flag> {
     const video_id = extract_yt_id(url)
 
     if (!video_id)
-        return labels.missing_id
+        return (await getLabels()).missing_id
 
-    let video_data = await getVideoMetadata(video_id, "YouTube")
+    const cached = await getVideoMetadata(video_id, "YouTube", with_annotation)
 
-    if (video_data)
-        return video_data
+    if (cached)
+        return cached
 
     const id_param = new URLSearchParams({ id: video_id })
     const response = await fetch(`https://www.googleapis.com/youtube/v3/videos?${id_param}&part=snippet,contentDetails&key=${process.env.API_KEY}`)
@@ -148,12 +148,12 @@ async function from_youtube(url: URL): Promise<video_metadata | Flag> {
     const response_item = response_data["items"][0]
 
     if (!response_item)
-        return labels.unavailable
+        return (await getLabels()).unavailable
 
     const snippet = response_item["snippet"]
     const iso8601_duration = response_item["contentDetails"]["duration"]
 
-    video_data = {
+    const video_data = {
         title: snippet["title"],
         id: video_id,
         thumbnail: snippet.thumbnails.medium.url,
@@ -162,7 +162,8 @@ async function from_youtube(url: URL): Promise<video_metadata | Flag> {
         upload_date: new Date(snippet["publishedAt"]),
         duration: convert_iso8601_duration_to_seconds(iso8601_duration),
         platform: "YouTube",
-    } as video_metadata
+        manual_label: null
+    } as video_metadata & { manual_label: null }
 
     await saveVideoMetadata(video_data)
     return video_data
@@ -171,14 +172,14 @@ async function from_youtube(url: URL): Promise<video_metadata | Flag> {
 /**
  * Query yt-dlp for the given URL.
  */
-async function from_other(url: URL): Promise<video_metadata | Flag> {
+async function from_other(url: URL, with_annotation: boolean): Promise<video_metadata & { manual_label: manual_label | null } | Flag> {
     let netloc = url.hostname
     
     if (netloc.indexOf(".") != netloc.lastIndexOf("."))
         netloc = netloc.slice(netloc.indexOf(".") + 1)
 
     if (!(accepted_domains.includes(netloc)))
-        return labels.unsupported_site
+        return (await getLabels()).unsupported_site
 
     /**
      * Non yotube videos seem to have their ids completely within the
@@ -190,7 +191,7 @@ async function from_other(url: URL): Promise<video_metadata | Flag> {
     const video_db_id = url.pathname.replace(/^\/*|\/*$/, "")
 
     if (!video_db_id)
-        return labels.missing_id
+        return (await getLabels()).missing_id
 
     let site: string = netloc.split(".")[0]
     site = site[0].toUpperCase() + site.slice(1)
@@ -213,10 +214,10 @@ async function from_other(url: URL): Promise<video_metadata | Flag> {
             break
     }
 
-    let video_data = await getVideoMetadata(video_db_id, site)
+    const cached = await getVideoMetadata(video_db_id, site as VideoPlatform, with_annotation)
 
-    if (video_data)
-        return video_data
+    if (cached)
+        return cached
 
     const url_str = url.toString()
     let response = undefined
@@ -227,7 +228,7 @@ async function from_other(url: URL): Promise<video_metadata | Flag> {
             response = response["entries"][0]
     } catch (error) {
         console.log(error)
-        return labels.unavailable
+        return (await getLabels()).unavailable
     }
 
     /* Some urls might have specific issues that should
@@ -236,7 +237,6 @@ async function from_other(url: URL): Promise<video_metadata | Flag> {
     then the respective case should be updated accordingly */
     switch (site) {
         case "Twitter":
-        case "X":
             response["title"] = `"${response["title"].slice(response["uploader"].length + 3)}"` // unsliced format is: uploader - title
             /* This type of url means that the post has more than one video
             and ytdlp will only successfully retrieve the duration if
@@ -261,7 +261,7 @@ async function from_other(url: URL): Promise<video_metadata | Flag> {
 
     const date_str: string = response["upload_date"]
 
-    video_data = {
+    const video_data = {
         title: response["title"],
         id: video_db_id,
         thumbnail: response["thumbnail"] || "",
@@ -270,7 +270,8 @@ async function from_other(url: URL): Promise<video_metadata | Flag> {
         upload_date: new Date(`${date_str.slice(0, 4)}-${date_str.slice(4, 6)}-${date_str.slice(6)}`),
         duration: response["duration"] || null,
         platform: site.charAt(0).toUpperCase() + site.slice(1),
-    } as video_metadata
+        manual_label: null
+    } as video_metadata & { manual_label: null }
 
     await saveVideoMetadata(video_data)
     return video_data
@@ -281,10 +282,10 @@ async function from_other(url: URL): Promise<video_metadata | Flag> {
  * @param url_str a link to a video
  * @returns A video metadata object if the fetch was successful, or a Flag that details what went wrong
  */
-export async function fetch_metadata(url_str: string) {
+export async function fetch_metadata(url_str: string, with_annotation = false) {
     if (!url_str.startsWith("https://"))
         url_str = "https://" + url_str
 
     const url = new URL(url_str)
-    return youtube_domains.includes(url.hostname) ? from_youtube(url) : from_other(url)
+    return youtube_domains.includes(url.hostname) ? from_youtube(url, with_annotation) : from_other(url, with_annotation)
 }

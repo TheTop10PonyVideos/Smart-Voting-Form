@@ -1,7 +1,7 @@
 // A file creating and ensuring only a single connection existing to the database between reloads made when ran using `next dev`
 
 import { PrismaClient } from "@/generated/prisma";
-import { labels, updateLabels } from "./labels";
+import { labels } from "./labels";
 import { Flag } from "./types";
 
 /**
@@ -17,8 +17,6 @@ async function initConnection() {
             data: Object.values(labels)
         })
     }
-    else
-        updateLabels(present)
 
     return prisma
 }

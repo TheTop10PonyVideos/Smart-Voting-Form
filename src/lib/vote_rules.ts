@@ -1,11 +1,14 @@
 import { BallotEntryField, Flag } from "./types";
-import { client_labels, labels } from "./labels";
+import { client_labels } from "./labels";
+import { manual_label } from "@/generated/prisma";
+import { getLabels } from "./data_cache";
 
 /**
- * Server side checks of video metadata to determine eligibility
+ * Server side checks of video metadata to determine eligibility. If a manual label flagis present, it will be the only one present unless include_all is true
  * @returns A list of flags for any that may apply to the video
  */
-export function video_check(video_metadata: { upload_date: Date, duration: number | null, uploader: string }): Flag[] {
+export async function video_check(video_metadata: { upload_date: Date, duration: number | null, uploader: string, manual_label: manual_label | null }, include_all = false): Promise<Flag[]> {
+    const syncedLabels = await getLabels()
     const flags: Flag[] = []
 
     const now = new Date(Date.now())
@@ -27,20 +30,29 @@ export function video_check(video_metadata: { upload_date: Date, duration: numbe
         (u_month === 0 && u_date === 1 && u_year - period_year === 1)
 
     if(!(acceptable_month_range && acceptable_year_range))
-        flags.push(labels.wrong_period)
-    // My gosh im gonna kms if i need to work with date times again
+        flags.push(syncedLabels.wrong_period)
 
     if (video_metadata.duration !== null) {
         if (video_metadata.duration < 30)
-            flags.push(labels.too_short)
+            flags.push(syncedLabels.too_short)
         else if (video_metadata.duration <= 45)
-            flags.push(labels.maybe_too_short)
+            flags.push(syncedLabels.maybe_too_short)
     }
 
     if (video_metadata.uploader === "LittleshyFiM")
-        flags.push(labels.littleshy_vid)
+        flags.push(syncedLabels.littleshy_vid)
 
-    return flags
+    return video_metadata.manual_label ?
+        [
+            ...(include_all ? flags : []),
+            {
+                name: "Manual Check",
+                type: video_metadata.manual_label.label as "eligible" | "ineligible",
+                details: video_metadata.manual_label.content,
+                trigger: "manual"
+            } as Flag
+        ] :
+        flags
 }
 
 /**

@@ -13,11 +13,12 @@ function Settings({ videoItem, setSelectedVideo }: { videoItem: VideoPoolItem, s
   if (manual_label?.type === "disabled")
     manual_label = undefined
 
-  const [status, setStatus] = useState(manual_label?.type.replace(/./, c => c.toUpperCase()) || "default")
+  const [status, setStatus] = useState(manual_label?.type || "default")
   const [whitelisted, setWhitelisted] = useState(videoItem.whitelisted)
   const [inputs, setInputs] = useState({ eligibility: manual_label?.details || "", source: videoItem.source })
 
   const inputType = status === "reupload" ? "source" : "eligibility"
+  const hideKey = `${videoItem.platform} - ${videoItem.id}`
 
   const radioBtnChange: ChangeEventHandler<HTMLInputElement> = e => setStatus(e.target.value)
 
@@ -31,12 +32,10 @@ function Settings({ videoItem, setSelectedVideo }: { videoItem: VideoPoolItem, s
   }
 
   const hide = () => {
-    const key = `${videoItem.platform} - ${videoItem.id}`
-
-    if (localStorage.getItem(key))
-      localStorage.removeItem(key)
+    if (localStorage.getItem(hideKey))
+      localStorage.removeItem(hideKey)
     else
-      localStorage.setItem(key, "hidden")
+      localStorage.setItem(hideKey, "hidden")
 
     setSelectedVideo(null)
   }
@@ -88,7 +87,7 @@ function Settings({ videoItem, setSelectedVideo }: { videoItem: VideoPoolItem, s
           }/>
 
           <div style={{display: "flex",gap: "20px"}}>
-            <button onClick={hide}>{videoItem.hidden ? "Unhide" : "Hide"}</button>
+            <button onClick={hide}>{localStorage.getItem(hideKey) ? "Unhide" : "Hide"}</button>
             <button onClick={save}>Save</button>
             <button onClick={() => setSelectedVideo(null)}>Back</button>
           </div>
@@ -98,9 +97,10 @@ function Settings({ videoItem, setSelectedVideo }: { videoItem: VideoPoolItem, s
 }
 
 function VideoTile({ i, item, onClick }: { i: number, item: VideoPoolItem, onClick: (item: VideoPoolItem) => void }) {
-  const manual = item.flags.find(f => f.trigger === "manual" && f.type !== "disabled")
-  const highest_flag = item.flags.find(f => f.type === "ineligible") || item.flags.find(f => f.type === "warn") || false
-  const flag = manual || highest_flag
+  const refFlag =
+    item.flags.find(f => f.trigger === "manual" && f.type !== "disabled") ||
+    item.flags.find(f => f.type === "ineligible") ||
+    item.flags.find(f => f.type === "maybe ineligible")
 
   const s = item.votes !== 1
 
@@ -114,7 +114,7 @@ function VideoTile({ i, item, onClick }: { i: number, item: VideoPoolItem, onCli
       <span style={{display: "flex", justifyContent: "space-between"}}>
         <b>{item.votes} vote{s && "s"}</b>
         {item.whitelisted && <span className={styles.indicator}>☑️</span>}
-        {flag && <Image src={stampMap[flag.type].icon} alt="" width={18} height={18}/>}
+        {refFlag && <Image src={stampMap[refFlag.type].icon} alt="" width={18} height={18}/>}
       </span>
       {item.title}<br/><br/>
 

@@ -1,4 +1,4 @@
-import { getLabelConfigs } from "@/lib/queries/etc";
+import { getLabels } from "@/lib/data_cache";
 import ControlPanel from "./components/ControlPanel";
 import { cookies } from "next/headers";
 import { forbidden } from "next/navigation";
@@ -10,7 +10,7 @@ export default async function ControlPanelPage() {
   if (uid !== process.env.OPERATOR)
     forbidden() // TODO: keep an eye on this between nextjs updates since it's experimental
   
-  const label_configs = await getLabelConfigs()
+  const label_configs = await getLabels()
 
-  return <ControlPanel labelConfigs={label_configs} videoPool0={[]} />
+  return <ControlPanel labelConfigs={label_configs} />
 }

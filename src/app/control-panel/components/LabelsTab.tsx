@@ -7,11 +7,11 @@ import VoteField from "@/app/components/vote_field";
 import { testLink } from "@/lib/util";
 import { validate, updateLabels } from "@/lib/api/video";
 import { BallotEntryField, Flag } from "@/lib/types";
-import { labels, stampMap } from "@/lib/labels";
+import { label_key, labels, stampMap } from "@/lib/labels";
 import { ballot_check } from "@/lib/vote_rules";
 
 interface Props {
-  labelSettings: Flag[]
+  labelSettings: Record<label_key, Flag>
 }
 
 export default function LabelsTab({ labelSettings }: Props) {
@@ -22,9 +22,9 @@ export default function LabelsTab({ labelSettings }: Props) {
   const savedLabels = useRef(JSON.stringify(labelsConfigs))
   const pasting = useRef(false)
 
-  const labelChange = (index: number, newVals: Partial<Flag>) => {
-    const updated = [...labelsConfigs]
-    updated[index] = { ...updated[index], ...newVals }
+  const labelChange = (key: label_key, newVals: Partial<Flag>) => {
+    const updated = {...labelsConfigs}
+    updated[key] = { ...updated[key], ...newVals }
 
     setLabels(updated)
     setSaved(JSON.stringify(updated) === savedLabels.current)
@@ -82,10 +82,10 @@ export default function LabelsTab({ labelSettings }: Props) {
       alert("Failed to save")
   }
 
-  const newLabelMap = new Map<string, Flag>(labelsConfigs.map(s => [s.trigger, s]))
+  const newLabelMap = new Map<string, Flag>(Object.values(labelsConfigs).map(label => [label.trigger, label]))
   const activeLabels = new Set<string>()
 
-  // Using the client bundled labels here is fine since it's used only to determine active labels
+  // Using client bundled labels here is fine since it's used only to determine active labels
   const { uniqueCreators, eligible, checkedEntries } = ballot_check(voteFields, labels)
 
   if (eligible.length < 5)
@@ -128,25 +128,25 @@ export default function LabelsTab({ labelSettings }: Props) {
       </div>
 
       <div className={styles.labelSettingsContainer}>
-        {labelsConfigs.map((labelConfig, index) => (
-          <div key={index} className={`${styles.labelSettings} ${activeLabels.has(labelConfig.trigger) && styles.activeLabel}`}>
+        {Object.entries(labelsConfigs).map(([labelKey, label], index) => (
+          <div key={index} className={`${styles.labelSettings} ${activeLabels.has(label.trigger) && styles.activeLabel}`}>
             <div className={styles.hoverInfo}>
-              <div className={styles.triggeredBy}>Triggered by: {labelConfig.trigger}</div>
+              <div className={styles.triggeredBy}>Triggered by: {label.trigger}</div>
             </div>
 
             <div className={styles.inputGroup}>
               <input
                 type="text"
-                value={labelConfig.name}
-                onChange={(e) => labelChange(index, { name: e.target.value })}
+                value={label.name}
+                onChange={(e) => labelChange(labelKey as label_key, { name: e.target.value })}
                 className={styles.labelNameField}
                 placeholder="Name"
               />
 
               <input
                 type="text"
-                value={labelConfig.details}
-                onChange={(e) => labelChange(index, { details: e.target.value })}
+                value={label.details}
+                onChange={(e) => labelChange(labelKey as label_key, { details: e.target.value })}
                 className={styles.labelDetailsField}
                 placeholder="Details"
               />
@@ -154,12 +154,12 @@ export default function LabelsTab({ labelSettings }: Props) {
               <button
                 className={styles.iconButton}
                 onClick={() => {
-                  const t = labelConfig.type
-                  labelChange(index, { type: t === "ineligible" && "warn" || t === "warn" && "disabled" || "ineligible"})
+                  const t = label.type
+                  labelChange(labelKey as label_key, { type: t === "ineligible" && "maybe ineligible" || t === "maybe ineligible" && "disabled" || "ineligible"})
                 }}
               >
                 <Image
-                  src={stampMap[labelConfig.type].icon}
+                  src={stampMap[label.type].icon}
                   alt=""
                   width={24}
                   height={24}

@@ -1,4 +1,3 @@
-import { video_metadata } from "@/generated/prisma";
 import { prisma } from "../prisma";
 import { Flag } from "../types";
 
@@ -14,33 +13,37 @@ export async function getAllData() {
         prisma.playlist_item.findMany(),
         prisma.label_config.findMany(),
         prisma.manual_label.findMany()
-    ]);
+    ])
 
-    return { users, video_metadata, ballot_item, label_config, manual_label, playlist, playlist_item };
-}export function setLabelConfigs(new_configs: Flag[]) {
+    return { users, video_metadata, ballot_item, label_config, manual_label, playlist, playlist_item }
+}
+
+
+export function setLabelConfigs(new_configs: Flag[]) {
     return prisma.$transaction(
         new_configs.map(config => prisma.label_config.update({
             where: { trigger: config.trigger },
             data: config
         })
         )
-    );
+    )
 }
+
 
 export async function getPool() {
-    const result = await prisma.$queryRaw`
-    SELECT v.*, COUNT(CASE WHEN b.user_id IS NOT NULL THEN 1 END) votes
-    FROM video_metadata v
-    LEFT JOIN ballot_item b
-        ON b.video_id = v.id AND b.platform = v.platform
-    GROUP BY v.id, v.platform
-    ORDER BY votes DESC
-    LIMIT 30;
-    ` as (video_metadata & { votes: number; })[];
-
-    return result.map(item => ({ ...item, votes: Number(item.votes) }));
+    return (
+        await prisma.video_metadata.findMany({
+            include: {
+                manual_label: true,
+                _count: { select: { ballot_item: true } }
+            },
+            orderBy: { ballot_item: { _count: "desc" } },
+            take: 30
+        })
+    ).map(v => ({ ...v, votes: v._count.ballot_item }))
 }
+
+
 export function getLabelConfigs() {
-    return prisma.label_config.findMany() as Promise<Flag[]>;
+    return prisma.label_config.findMany() as Promise<Flag[]>
 }
-

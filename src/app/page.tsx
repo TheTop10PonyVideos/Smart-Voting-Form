@@ -4,7 +4,7 @@ import { getBallotItems } from "@/lib/queries/ballot";
 import styles from "./page.module.css"
 import { getVotingPeriod, toClientVideoMetadata } from "@/lib/util";
 import { video_check } from "@/lib/vote_rules";
-import { getCliLabels } from "@/lib/labels";
+import { getCliLabels } from "@/lib/data_cache";
 
 // Initialize entries to be shown if the user had previously made any in their ballot
 export default async function Home() {
@@ -21,18 +21,20 @@ export default async function Home() {
   const initial_entries: any[] = Array.from({ length: 10 }, () => ({ flags: [], videoData: null, input: "" }))
   dataItems.forEach(item => initial_entries[item.ballot_index].videoData = item)
 
-  initial_entries.forEach(entry => {
-    if (!entry.videoData)
-      return
+  await Promise.all(
+      initial_entries.map(async entry => {
+      if (!entry.videoData)
+        return
 
-    entry.flags = video_check(entry.videoData)
-    entry.videoData = toClientVideoMetadata(entry.videoData)
-    entry.input = entry.videoData.link
-  })
+      entry.flags = await video_check(entry.videoData)
+      entry.videoData = toClientVideoMetadata(entry.videoData)
+      entry.input = entry.videoData.link
+    })
+  )
 
   return (
     <div className={styles.page}>
-      <VoteForm initial_entries={initial_entries} cli_labels={getCliLabels()} votingPeriod={getVotingPeriod()}/>
+      <VoteForm initial_entries={initial_entries} cli_labels={await getCliLabels()} votingPeriod={getVotingPeriod()}/>
     </div>
   )
 }

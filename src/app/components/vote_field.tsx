@@ -1,6 +1,7 @@
 import { BallotEntryField } from "@/lib/types";
 import styles from "../page.module.css";
 import Image from "next/image";
+import { stampMap } from "@/lib/labels";
 
 interface Props {
   index: number
@@ -10,10 +11,13 @@ interface Props {
 }
 
 export default function VoteField({ index, voteData, onChanged, onPaste }: Props) {
-  const warnLevel = voteData.flags.some(f => f.type === "ineligible") && 2 || voteData.flags.some(f => f.type === "warn") && 1 || 0
+  const refFlag =
+    voteData.flags.find(f => f.trigger === "manual") ||
+    voteData.flags.find(f => f.type === "ineligible") ||
+    voteData.flags.find(f => f.type === "maybe ineligible")
 
   return (
-    <div className={`${styles.field} ${warnLevel == 2 && styles.ineligible || warnLevel && styles.warn}`}>
+    <div className={`${styles.field} ${refFlag?.type === "ineligible" && styles.ineligible || refFlag?.type === "maybe ineligible" && styles.warn}`}>
       {voteData.videoData &&
         <div className={styles.video_display} style={{position: "relative"}}>
           <img className={styles.thumbnail} src={voteData.videoData.thumbnail || ""} width={160} height={90} alt="" fetchPriority="low" loading="lazy" decoding="async" referrerPolicy="no-referrer"/>
@@ -34,15 +38,21 @@ export default function VoteField({ index, voteData, onChanged, onPaste }: Props
         {voteData.input && (
           voteData.videoData === undefined && <div className={styles.loading_icon}/> ||
 
-          warnLevel && <>
-            <Image src={warnLevel === 1 && "warn.svg" || "x.svg"} alt="" width={25} height={25} />
+          refFlag &&
+          <>
+            <Image src={stampMap[refFlag.type].icon} alt="" width={25} height={25} />
             <div className={styles.note}>
-              <h3>{warnLevel === 2 ? "Ineligible" : "Maybe Ineligible" }</h3>
+              <h3>
+                { `${refFlag.type.replace(/\b\w/g, c => c.toUpperCase())}${refFlag.trigger === "manual" ? " (Manually Checked)" : ""}` }
+              </h3>
+
               <ul>
                 {voteData.flags.map((flag, i) => <li key={i}>{flag.details}</li>)}
               </ul>
+
             </div>
-          </> || <>
+          </> ||
+          <>
             <Image src={"checkmark.svg"} alt="" width={25} height={25} />
             <div className={styles.note2}>Eligible!</div>
           </>

@@ -52,7 +52,7 @@ export function getVideoLinkTemp(data: { platform: string, id: string, uploader_
  */
 export function toClientVideoMetadata(video_metadata: video_metadata): VideoDataClient {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { whitelisted, duration, upload_date, hidden, ...clientReceivable } = video_metadata
+    const { whitelisted, duration, upload_date, ...clientReceivable } = video_metadata
     const withLink = {...clientReceivable, link: getVideoLinkTemp(clientReceivable) }
     return withLink
 }

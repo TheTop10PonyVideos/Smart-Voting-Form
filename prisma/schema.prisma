@@ -9,10 +9,11 @@ datasource db {
 }
 
 model manual_label {
-  video_id String
-  platform String
-  label    String
-  content  String?
+  video_id       String
+  platform       String
+  label          String
+  content        String
+  video_metadata video_metadata @relation(fields: [video_id, platform], references: [id, platform], onDelete: Cascade, onUpdate: NoAction)
 
   @@id([video_id, platform])
 }
@@ -46,9 +47,9 @@ model video_metadata {
   duration      Int?
   platform      String
   whitelisted   Boolean         @default(false)
-  hidden        Boolean         @default(false)
   source        String          @default("")
   ballot_item   ballot_item[]
+  manual_label  manual_label?
   playlist_item playlist_item[]
 
   @@id([id, platform])

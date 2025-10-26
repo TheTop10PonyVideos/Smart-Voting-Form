@@ -7,7 +7,11 @@ export function getBallotItems(uid: string) {
         where: {
             user_id: uid
         },
-        include: { video_metadata: true }
+        include: {
+            video_metadata: {
+                include: { manual_label: true }
+            }
+        }
     })
 }
 

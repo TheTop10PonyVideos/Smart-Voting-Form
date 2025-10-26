@@ -25,7 +25,7 @@ export default function VoteCounter({ cli_labels, eligibleCount, uniqueCreatorCo
       <div className={`${styles.eligible_count_note} ${[styles.good, styles.warn, styles.ineligible][stamp.severity]}`}>
       {
         !stamp.severity ?
-        "Minimum 5 eligible vote requiremnt met!" :
+        "Minimum eligible vote requiremnt met!" :
 
         stamp === minStamp ?
         minStamp.label.details :

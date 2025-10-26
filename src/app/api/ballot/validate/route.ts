@@ -13,9 +13,9 @@ export async function POST(req: NextRequest) {
     return new Response(null, { status: 400 })
   
   const uid = req.cookies.get("uid")?.value
-  const fetch_result = await fetch_metadata(body.link)
+  const fetch_result = await fetch_metadata(body.link, true)
 
-  const [flags, metadata] = "type" in fetch_result ? [[fetch_result], undefined] : [video_check(fetch_result), fetch_result]
+  const [flags, metadata] = "type" in fetch_result ? [[fetch_result], undefined] : [await video_check(fetch_result), fetch_result]
 
   if (body.index !== undefined && uid) {
     if (!metadata)
