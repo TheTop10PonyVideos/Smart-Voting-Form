@@ -15,8 +15,10 @@ import { client_labels } from "@/lib/labels";
 interface Props {
   cli_labels: client_labels,
   initial_entries: BallotEntryField[],
-  votingPeriod: (string | number)[]
+  votingPeriod: [number, boolean]
 }
+
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
 export default function VoteForm({ cli_labels, initial_entries, votingPeriod }: Props) {
   const [voteFields, setVoteFields] = useState<BallotEntryField[]>(initial_entries)
@@ -24,6 +26,7 @@ export default function VoteForm({ cli_labels, initial_entries, votingPeriod }: 
   const inputTimeouts = useRef<NodeJS.Timeout[]>([])
   const deletionTimeouts = useRef<NodeJS.Timeout[]>([])
   const pasting = useRef(false)
+  const [votingMonth, formOpen] = votingPeriod
 
   /**
    * Shorthand for updating vote fields given their index
@@ -101,6 +104,8 @@ export default function VoteForm({ cli_labels, initial_entries, votingPeriod }: 
   // Exports votes to the main form, and shows a warning if there's a chance that < 5 might be ineligible
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!formOpen)
+      return
 
     const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement
 
@@ -156,7 +161,7 @@ export default function VoteForm({ cli_labels, initial_entries, votingPeriod }: 
           </div>
         }
         <div className={styles.headerfield}>
-          <label>Voting for The Top 10 Pony Videos of {votingPeriod[0]}</label>
+          <label>Voting for The Top 10 Pony Videos of {months[votingMonth]}</label>
           <p>
             This form is made to make voting easier by displaying video details with each vote and by checking their preliminary eligibility in advance.<br/><br/>
             To submit your votes, first click the <b>Export Votes</b> button at the bottom. This will forward all your votes to the <a className={styles.link} href="https://docs.google.com/forms/d/e/1FAIpQLSdVi1gUmI8c2nBnYde7ysN8ZJ79EwI5WSBTbHKqIgC7js0PYg/viewform">main Google Form</a> where you can then submit them.<br/><br/>
@@ -184,7 +189,12 @@ export default function VoteForm({ cli_labels, initial_entries, votingPeriod }: 
           </div>
           <div className={styles.input} style={{ color: "grey", fontSize: 14, pointerEvents: "none" }}>For privacy reasons, only enter contact info on the official form</div>
         </div>
-        <button type="submit" value={should_warn ? "warn" : "export" } className={styles.submitButton}>Export Votes</button>
+        <button type="submit" value={should_warn ? "warn" : "export" } className={`${styles.exportButton} ${formOpen ? styles.submitButton : styles.disabledSubmitButton}`}>
+          Export Votes
+          <div className={styles.disabledExportNote}>
+            Come back during the first week of {months[(votingMonth + 1) % 12]} when the voting form opens!
+          </div>
+        </button>
       </form>
     </>
   )

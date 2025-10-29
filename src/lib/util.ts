@@ -89,15 +89,22 @@ export function cliTestLink(input: string, cli_labels: client_labels): false | F
 }
 
 /**
- * Get the time period for which pony videos can be voted from
- * @returns the period as a list of [Month Name, Year]
+ * Get the index of the current voting cycle month
+ * and whether or not the mane voting form is open
  */
-export function getVotingPeriod() {
+export function getVotingPeriod(): [number, boolean] {
     const now = new Date(Date.now())
     const day = now.getDate()
 
-    now.setDate(Math.min(day, 10)) // Mar 30 to february would otherwise still result in march bc of day rollover
-    now.setMonth(day > 7 ? now.getMonth() : now.getMonth() - 1)
+    const period = new Date(
+        now.getFullYear(),
+        day > 7 ? now.getMonth() : now.getMonth() - 1,
+        Math.min(day, 10) // Mar 30 to february would otherwise still result in march bc of day rollover
+    )
 
-    return [now.toLocaleString("en-US", { month: "long" }), now.getFullYear()]
+    // The form is open if it's the first week or usually last day of the month
+    now.setDate(day + 1) // Using rollover to determine if it's last day
+    const formOpen = day <= 7 || day > now.getDate()
+
+    return [period.getMonth(), formOpen]
 }
