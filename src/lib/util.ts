@@ -31,16 +31,17 @@ export function getVideoLink(data: { platform: string, id: string, uploader_id: 
 
 const platform_bases_temp = {
     "YouTube": "www.youtube.com/watch?v=",
-    "Dailymotion": "www.dailymotion.com/",
-    "Vimeo": "vimeo.com/",
-    "ThisHorsieRocks": "pt.thishorsie.rocks/",
-    "PonyTube": "pony.tube/",
     "Bilibili": "www.bilibili.com/",
-    "Twitter": "x.com/",
     "Bluesky": "bsky.app/profile/",
-    "Tiktok": "www.tiktok.com/",
+    "Dailymotion": "www.dailymotion.com/",
+    "Instagram": "www.instagram.com/",
+    "Newgrounds": "www.newgrounds.com/",
     "Odysee": "odysee.com/",
-    "Newgrounds": "www.newgrounds.com/"
+    "PonyTube": "pony.tube/",
+    "ThisHorsieRocks": "pt.thishorsie.rocks/",
+    "Tiktok": "www.tiktok.com/",
+    "Twitter": "x.com/",
+    "Vimeo": "vimeo.com/"
 }
 
 export function getVideoLinkTemp(data: { platform: string, id: string, uploader_id: string }) {
@@ -57,6 +58,9 @@ export function toClientVideoMetadata(video_metadata: video_metadata): VideoData
     return withLink
 }
 
+const validLink = /(https?:\/\/)?(\w+\.)?(pony\.tube|youtube\.com|youtu\.be|bilibili\.com|vimeo\.com|thishorsie\.rocks|dailymotion\.com|dai\.ly|tiktok\.com|twitter\.com|x\.com|odysee\.com|newgrounds\.com|bsky\.app|instagram\.com)\/?[^\s]{0,500}/
+const link = /(https?:\/\/)?[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+/
+
 /**
  * Tests an input string to determine if it is a valid link
  * @returns false if input doesn't resemble a link, or an array of 0 or 1 flag if the link is or isn't from a supported platform respectively
@@ -64,11 +68,8 @@ export function toClientVideoMetadata(video_metadata: video_metadata): VideoData
 export function testLink(input: string): false | Flag[] {
     input = input.trim()
     if (!/^[^\s]+$/.test(input)) return false
-    
-    const valid = /(https?:\/\/)?(\w+\.)?(pony\.tube|youtube\.com|youtu\.be|bilibili\.com|vimeo\.com|thishorsie\.rocks|dailymotion\.com|dai\.ly|tiktok\.com|twitter\.com|x\.com|odysee\.com|newgrounds\.com|bsky\.app)\/?[^\s]{0,500}/
-    const link = /(https?:\/\/)?[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+/
 
-    if (valid.test(input)) return []
+    if (validLink.test(input)) return []
     if (link.test(input)) return [labels.unsupported_site]
     return false
 }
@@ -79,11 +80,8 @@ export function testLink(input: string): false | Flag[] {
 export function cliTestLink(input: string, cli_labels: client_labels): false | Flag[] {
     input = input.trim()
     if (!/^[^\s]+$/.test(input)) return false
-    
-    const valid = /(https?:\/\/)?(\w+\.)?(pony\.tube|youtube\.com|youtu\.be|bilibili\.com|vimeo\.com|thishorsie\.rocks|dailymotion\.com|dai\.ly|tiktok\.com|twitter\.com|x\.com|odysee\.com|newgrounds\.com|bsky\.app)\/?[^\s]{0,500}/
-    const link = /(https?:\/\/)?[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+/
 
-    if (valid.test(input)) return []
+    if (validLink.test(input)) return []
     if (link.test(input)) return [cli_labels.unsupported_site]
     return false
 }

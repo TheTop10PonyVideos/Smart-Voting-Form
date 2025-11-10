@@ -5,16 +5,17 @@ import { flagTypes } from "./labels"
 
 export type VideoPlatform =
     "YouTube" |
-    "Dailymotion" |
-    "Vimeo" |
-    "ThisHorsieRocks" |
-    "PonyTube" |
     "Bilibili" |
-    "Twitter" |
     "Bluesky" |
-    "Tiktok" |
+    "Dailymotion" |
+    "Instagram" |
+    "Newgrounds" |
     "Odysee" |
-    "Newgrounds"
+    "PonyTube" |
+    "Tiktok" |
+    "ThisHorsieRocks" |
+    "Twitter" |
+    "Vimeo"
 
 export type VideoDataClient = Omit<video_metadata, "upload_date" | "duration" | "whitelisted"> & { link: string }
 

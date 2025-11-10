@@ -11,18 +11,19 @@ const youtube_domains = ["m.youtube.com", "www.youtube.com", "youtube.com", "you
 
 // Non youtube domains that are also supported
 const accepted_domains = [
+    "bilibili.com",
+    "bsky.app",
     "dailymotion.com",
     "dai.ly",
+    "instagram.com",
     "pony.tube",
-    "vimeo.com",
-    "bilibili.com",
     "thishorsie.rocks",
     "tiktok.com",
     "twitter.com",
-    "x.com",
-    "odysee.com",
     "newgrounds.com",
-    "bsky.app"
+    "odysee.com",
+    "vimeo.com",
+    "x.com",
 ]
 
 async function ytdlp_fetch(url: string): Promise<YTDLPItems | { entries: YTDLPItems[] }> {
@@ -34,7 +35,7 @@ async function ytdlp_fetch(url: string): Promise<YTDLPItems | { entries: YTDLPIt
             "--no-warnings",
             "--sleep-interval", "2",
             "--use-extractors",
-                "twitter,Newgrounds,lbry,TikTok,PeerTube,vimeo,BiliBili,dailymotion,Bluesky,generic",
+                "BiliBili,Bluesky,dailymotion,Instagram,lbry,Newgrounds,PeerTube,TikTok,twitter,vimeo,generic",
             "--cookies", "cookies.txt",
             url
         ])
