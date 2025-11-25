@@ -1,7 +1,7 @@
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 CREATE TABLE "user" (
-	id TEXT PRIMARY KEY,
-	last_active DATE NOT NULL,
-	last_ballot_update DATE
+	id TEXT PRIMARY KEY
 );
 
 CREATE TABLE video_metadata (
@@ -17,11 +17,13 @@ CREATE TABLE video_metadata (
 	source TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY (id, platform)
 );
+CREATE INDEX trgm_idx ON video_metadata USING GIN (title gin_trgm_ops);
 
 CREATE TABLE ballot_item (
 	user_id TEXT NOT NULL,
 	video_id TEXT NOT NULL,
 	platform TEXT NOT NULL,
+	creation_date TIMESTAMP,
 	index INT NOT NULL,
 	PRIMARY KEY (user_id, index),
 	FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE,
@@ -61,3 +63,14 @@ CREATE TABLE manual_label (
 	PRIMARY KEY (video_id, platform),
 	FOREIGN KEY (video_id, platform) REFERENCES video_metadata(id, platform) ON DELETE CASCADE
 );
+
+-- Changes from previous version
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX trgm_idx ON video_metadata USING GIN (title gin_trgm_ops);
+
+ALTER TABLE "user"
+DROP COLUMN last_active,
+DROP COLUMN last_ballot_update;
+
+ALTER TABLE ballot_item
+ADD COLUMN creation_date TIMESTAMP;

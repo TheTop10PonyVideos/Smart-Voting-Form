@@ -66,3 +66,22 @@ export async function updateVisibility(video_id: string, platform: VideoPlatform
         data: { whitelisted }
     })
 }
+
+
+export async function titleSearchMetadata(query: string, voting_period: Date, threshold = 0.6): Promise<video_metadata[]> {
+    const results: (video_metadata & {sim: number})[] = await prisma.$queryRaw`
+    WITH v AS (
+        SELECT *, word_similarity(${query}, title) AS sim
+        FROM video_metadata
+        WHERE whitelisted
+        AND upload_date >= ${voting_period}
+    )
+    SELECT *
+    FROM v
+    WHERE sim > ${threshold}
+    ORDER BY sim DESC
+    LIMIT 3;
+    `
+
+    return results.map(res => { const {sim, ...metadata} = res; return metadata })
+}

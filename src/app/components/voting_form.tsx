@@ -3,12 +3,12 @@
 import { useRef, useState } from "react";
 import { redirect, RedirectType } from "next/navigation";
 import styles from "../page.module.css";
-import { BallotEntryField } from "@/lib/types";
+import { BallotEntryField, VideoDataClient } from "@/lib/types";
 import VoteCounter from "./vote_counter";
 import VoteField from "./vote_field";
 import { cliTestLink } from "@/lib/util";
 import { removeBallotItem } from "@/lib/api/ballot";
-import { validate } from "@/lib/api/video";
+import { validate, videoSearch } from "@/lib/api/video";
 import { ballot_check } from "@/lib/vote_rules";
 import { client_labels } from "@/lib/labels";
 
@@ -23,6 +23,8 @@ const months = ["January", "February", "March", "April", "May", "June", "July", 
 export default function VoteForm({ cli_labels, initial_entries, votingPeriod }: Props) {
   const [voteFields, setVoteFields] = useState<BallotEntryField[]>(initial_entries)
   const [warning, setWarning] = useState(false)
+  const [searchResults, setSearchResults] = useState<[number, VideoDataClient[]]>([-1, []])
+  const [focusIndex, setFocusIndex] = useState(-1)
   const inputTimeouts = useRef<NodeJS.Timeout[]>([])
   const deletionTimeouts = useRef<NodeJS.Timeout[]>([])
   const pasting = useRef(false)
@@ -66,6 +68,23 @@ export default function VoteForm({ cli_labels, initial_entries, votingPeriod }: 
     }, 1000)
   }
 
+  const search = async (field_index: number, query: string) => {
+    const res = await videoSearch(query)
+    setSearchResults([field_index, res.search_results])
+  }
+
+  const setFocus = (field_index: number) => {
+    setSearchResults([-1, []])
+    setFocusIndex(field_index)
+  }
+
+  const selectSearchResult = async (field_index: number, result_data: VideoDataClient) => {
+    // Making a call to validate to get flags and save the vote
+    setSearchResults([-1, []])
+    const field_flags = (await validate(result_data.link, field_index)).field_flags
+    updateField(field_index, { flags: field_flags, videoData: result_data, input: result_data.link })
+  }
+
   // Handler for changes to the ballot entry fields
   const changed = async (e: React.ChangeEvent<HTMLInputElement>, field_index: number) => {    
     const input = e.currentTarget.value.trim()
@@ -78,8 +97,12 @@ export default function VoteForm({ cli_labels, initial_entries, votingPeriod }: 
       removeFieldSave(field_index)
     }
     else if (!isLink) {
-      updateField(field_index, { input, videoData: null, flags: [cli_labels.invalid_link] })
+      updateField(field_index, { input: e.currentTarget.value, videoData: null, flags: [cli_labels.invalid_link] })
       removeFieldSave(field_index)
+      if (input.length >= 2)
+        inputTimeouts.current[field_index] = setTimeout(() => search(field_index, input), 500)
+      else
+        setSearchResults([-1, []])
     }
     else if (isLink.length) {
       updateField(field_index, { input, videoData: null, flags: isLink })
@@ -112,7 +135,7 @@ export default function VoteForm({ cli_labels, initial_entries, votingPeriod }: 
     if (submitter.value === "warn")
       return setWarning(true)
 
-    let responses = voteFields.map(f => f.input).filter(vote => vote != "")
+    let responses = voteFields.map(f => f.input.trim()).filter(vote => vote != "")
     responses = [...responses, ...Array(10 - responses.length).fill("")]
 
     const base = "https://docs.google.com/forms/d/e/1FAIpQLSdVi1gUmI8c2nBnYde7ysN8ZJ79EwI5WSBTbHKqIgC7js0PYg/viewform?usp=pp_url&"
@@ -178,8 +201,12 @@ export default function VoteForm({ cli_labels, initial_entries, votingPeriod }: 
             key={i}
             index={i}
             voteData={field}
+            focused={i == focusIndex}
+            searchResults={searchResults[0] == i ? searchResults[1] : undefined}
             onChanged={changed}
             onPaste={pasted}
+            onSearchSelection={selectSearchResult}
+            setFocus={setFocus}
           />
         )}
         <div className={styles.field}>

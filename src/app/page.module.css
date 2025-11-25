@@ -258,9 +258,38 @@
   border-bottom: 9px solid rgb(241, 241, 241);
 }
 
+.searchResultBox {
+  position: absolute;
+  left: -8px;
+  width: 70%;
+  top: 100%;
+  z-index: 2;
+  gap: 10px;
+  background-color: rgb(235, 235, 235);
+}
+
 .video_display {
   display: flex;
+  position: relative;
   gap: 10px;
+}
+
+.searchResultDisplay {
+  display: flex;
+  position: relative;
+  border-bottom: black 1px solid;
+  padding: 10px 10px;
+  font-size: 0.85rem;
+  gap: 10px;
+}
+
+.searchResultDisplay:hover {
+  background-color: #dddddd;
+}
+
+.searchResultDisplay img {
+  object-fit: cover;
+  border-radius: 5px;
 }
 
 .video_display img {
@@ -268,11 +297,18 @@
   border-radius: 5px;
 }
 
-.video_origin {
+.video_display > .video_origin {
   position: absolute;
   font-size: 0.8rem;
   bottom: -20px;
   right: 0;
+}
+
+.searchResultDisplay > .video_origin {
+  position: absolute;
+  font-size: 0.65rem;
+  bottom: 5px;
+  right: 5px;
 }
 
 .input {

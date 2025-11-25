@@ -1,11 +1,11 @@
 import { prisma } from "../prisma";
-import { upsertFromUser } from "./user";
+import { getEarliestEligibleDate } from "../util";
 
 
 export function getBallotItems(uid: string) {
     return prisma.ballot_item.findMany({
         where: {
-            user_id: uid
+            user_id: uid, creation_date: { gte: getEarliestEligibleDate() }
         },
         include: {
             video_metadata: {
@@ -17,43 +17,31 @@ export function getBallotItems(uid: string) {
 
 
 export async function removeBallotItem(uid: string, index: number) {
-    const now = new Date(Date.now())
-
-    await prisma.user.update({
-        where: { id: uid },
-        data: {
-            ballot_item: {
-                delete: {
-                    user_id_index: { user_id: uid, index }
-                }
-            },
-            last_ballot_update: now
-        }
+    await prisma.ballot_item.delete({
+        where: { user_id_index: { user_id: uid, index } }
     })
 }
 
 
 export async function setBallotItem(uid: string, index: number, video_id: string, platform: string) {
-    const now = new Date(Date.now())
-    const item = { video_id: video_id, platform, index }
+    const item = { video_id: video_id, platform, index, creation_date: new Date(Date.now()) }
 
-    await upsertFromUser(
-        uid,
-        {
+    await prisma.user.upsert({
+        where: { id: uid },
+        update: {
             ballot_item: {
                 upsert: {
                     where: { user_id_index: { user_id: uid, index: index } },
                     update: item,
                     create: item
                 }
-            },
-            last_ballot_update: now
+            }
         },
-        {
+        create: {
+            id: uid,
             ballot_item: {
                 create: item
-            },
-            last_ballot_update: now
+            }
         }
-    )
+    })
 }

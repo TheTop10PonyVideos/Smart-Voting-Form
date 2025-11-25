@@ -108,12 +108,16 @@ export default function LabelsTab({ labelSettings }: Props) {
     <div className={styles.tabContents}>
       <div className={styles.testFields}>
         {withPreviews.map((field, i) =>
+          // TODO: make a VoteFields component that includes each field and the group's states so this has the same updates as ones made for the main page
           <VoteField
             key={i}
             index={i}
             voteData={field}
+            focused={false}
             onChanged={voteFieldEdit}
             onPaste={pasted}
+            onSearchSelection={() => {}}
+            setFocus={() => {}}
           />
         )}
       </div>

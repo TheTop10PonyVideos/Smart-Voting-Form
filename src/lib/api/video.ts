@@ -1,4 +1,3 @@
-import { label_config } from "@/generated/prisma";
 import { Flag, VideoStatusSettings, VideoPlatform, VideoDataClient } from "@/lib/types";
 import { label_key } from "../labels";
 
@@ -32,7 +31,6 @@ export async function validate(link: string, index?: number): Promise<APIValidat
 }
 
 
-
 export type APILabelUpdateRequestBody = { label_updates: Record<label_key, Flag>} 
 /**
  * Update the label details shown in ballot entries when videos have these labels
@@ -48,7 +46,6 @@ export async function updateLabels(label_updates: Record<label_key, Flag>) {
 
     return res
 }
-
 
 
 export type APIAnnotateVideoRequestBody = {
@@ -76,4 +73,12 @@ export async function annotateVideo(video_id: string, platform: VideoPlatform, s
     })    
 
     return res
-}    
+}
+
+
+export type APIVideoSearchResponseBody = { search_results: VideoDataClient[] }
+
+export async function videoSearch(query: string): Promise<APIVideoSearchResponseBody> {
+    const res = await fetch(`/api/video/search?q=${encodeURIComponent(query)}`, { method: "GET" })
+    return await res.json()
+}

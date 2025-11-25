@@ -24,8 +24,7 @@ export function setLabelConfigs(new_configs: Flag[]) {
         new_configs.map(config => prisma.label_config.update({
             where: { trigger: config.trigger },
             data: config
-        })
-        )
+        }))
     )
 }
 
@@ -38,7 +37,7 @@ export async function getPool() {
                 _count: { select: { ballot_item: true } }
             },
             orderBy: { ballot_item: { _count: "desc" } },
-            take: 30
+            take: 45
         })
     ).map(v => ({ ...v, votes: v._count.ballot_item }))
 }

@@ -4,6 +4,7 @@ import { VideoDataClient } from "@/lib/types";
 import { toClientVideoMetadata } from "@/lib/util";
 import EditablePlaylist from "./components/Editor";
 import Playlist from "./components/Playlist";
+import ConstructionZone from "../placeholder";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function PlaylistPage({ searchParams }: any) {
@@ -29,12 +30,13 @@ export default async function PlaylistPage({ searchParams }: any) {
   }
 
   return (
-    editable && <EditablePlaylist videos={playlist_items} playlistId={id} playlistName={name} playlistDescription={description}/>
-    ||
-    <div style={{
-      display: "flex",
-      justifyContent: "center",
-    }}>
+    process.env.NODE_ENV === "production" &&
+      <ConstructionZone/> ||
+
+    editable &&
+      <EditablePlaylist videos={playlist_items} playlistId={id} playlistName={name} playlistDescription={description}/> ||
+
+    <div style={{ display: "flex", justifyContent: "center" }}>
       <Playlist videos={playlist_items}/>
     </div>
   )
