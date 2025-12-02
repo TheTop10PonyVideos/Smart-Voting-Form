@@ -32,6 +32,7 @@ export type label_key =
 	"unavailable" |
 	"too_few_votes" |
 	"wrong_period" |
+	"edge_date" |
 	"too_short" |
 	"maybe_too_short" |
 	"diversity_rule" |
@@ -50,6 +51,7 @@ export let labels: Record<label_key, Flag> = {
 	unavailable:      { name: 'Unavailable video',  type: 'ineligible', 	  trigger: 'Empty metadata response',     details: 'Video is not public or is unavailable' },
 	too_few_votes:    { name: '1a',                 type: 'ineligible', 	  trigger: '<5 eligible videos',          details: 'Vote for a minimum of 5 eligible videos and maximum of 10' },
 	wrong_period:     { name: '2a',                 type: 'ineligible', 	  trigger: 'Video too old or new',        details: 'Vote for last month\'s videos based on your own time zone' },
+	edge_date:		  { name: '2a',					type: 'maybe ineligible', trigger: 'Video may be too old or new', details: 'Vote for last month\'s videos based on your own time zone' },
 	too_short:        { name: '4a',                 type: 'ineligible', 	  trigger: '<30 second video',            details: 'Short length: Videos must be 30 seconds or longer not including intros/outros/credits/etc' },
 	maybe_too_short:  { name: '4a',                 type: 'maybe ineligible', trigger: '<=45 second video',           details: 'Short length: Videos must be 30 seconds or longer not including intros/outros/credits/etc' },
 	diversity_rule:   { name: '5a',                 type: 'ineligible', 	  trigger: '<5 creators from eligible',	  details: 'You must have at least five eligible votes from five different creators' },

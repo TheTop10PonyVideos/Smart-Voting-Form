@@ -2,6 +2,7 @@ import { BallotEntryField, Flag } from "./types";
 import { client_labels } from "./labels";
 import { manual_label } from "@/generated/prisma";
 import { getLabels } from "./data_cache";
+import { getEligibleRange } from "./util";
 
 /**
  * Server side checks of video metadata to determine eligibility. If a manual label flagis present, it will be the only one present unless include_all is true
@@ -11,25 +12,17 @@ export async function video_check(video_metadata: { upload_date: Date, duration:
     const syncedLabels = await getLabels()
     const flags: Flag[] = []
 
-    const now = new Date(Date.now())
-    const period_offset = now.getDate() > 7 ? 0 : -1
-    const current_period = (now.getMonth() + period_offset + 12) % 12
-    const period_year = now.getFullYear() - +(current_period === 11 && period_offset === -1)
-
     const upload_date = video_metadata.upload_date
-    const u_month = upload_date.getMonth(), u_date = upload_date.getDate(), u_year = upload_date.getFullYear()
-    const from_last_day = new Date(u_year, u_month + 1, 0).getDate() === u_date
+    const [earliest, latest] = getEligibleRange()
 
-    const acceptable_month_range =
-        u_month === current_period ||
-        ((u_month + 1) % 12 === current_period && from_last_day) ||
-        (u_month === current_period && u_date === 1)
-
-    const acceptable_year_range =
-        u_year === period_year ||
-        (u_month === 0 && u_date === 1 && u_year - period_year === 1)
-
-    if(!(acceptable_month_range && acceptable_year_range))
+    if (upload_date >= earliest && upload_date <= latest) {
+        const temp = new Date(upload_date)
+        temp.setDate(temp.getDate() + (temp.getDate() < 10 ? 1 : -1))
+        
+        if (temp < earliest || temp > latest)
+            flags.push(syncedLabels.edge_date)
+    }
+    else
         flags.push(syncedLabels.wrong_period)
 
     if (video_metadata.duration !== null) {
@@ -62,44 +55,44 @@ export async function video_check(video_metadata: { upload_date: Date, duration:
  * @returns The number of unique creators found, eligible entries, and all entries with ballot flags included
  */
 export function ballot_check(entries: BallotEntryField[], cli_labels: client_labels) {
-  const uniqueVids = new Set<string>()
-  const creatorCounts = new Map<string, number>()
-  const entryCopies = entries.map(e => ({ ...e, flags: [...e.flags] })) // Shallow-ish copy to avoid accumulating the same flags in entries
+    const uniqueVids = new Set<string>()
+    const creatorCounts = new Map<string, number>()
+    const entryCopies = entries.map(e => ({ ...e, flags: [...e.flags] })) // Shallow-ish copy to avoid accumulating the same flags in entries
 
-  for (const entry of entryCopies) {
-    if (!entry.videoData)
-      continue
+    for (const entry of entryCopies) {
+        if (!entry.videoData)
+            continue
 
-    const vid_id = `${entry.videoData.id}-${entry.videoData.platform}`
-    const creator_id = `${entry.videoData.uploader}-${entry.videoData.platform}`
+        const vid_id = `${entry.videoData.id}-${entry.videoData.platform}`
+        const creator_id = `${entry.videoData.uploader}-${entry.videoData.platform}`
 
-    if (uniqueVids.has(vid_id))
-      entry.flags.push(cli_labels.duplicate_votes)
-    else
-      uniqueVids.add(vid_id)
+        if (uniqueVids.has(vid_id))
+            entry.flags.push(cli_labels.duplicate_votes)
+        else
+            uniqueVids.add(vid_id)
 
-    // Don't count creators from ineligible votes since some otherwise eligible votes may be flagged
-    if (entry.flags.some(f => f.type === "ineligible"))
-      continue
+        // Don't count creators from ineligible votes since some otherwise eligible votes may be flagged
+        if (entry.flags.some(f => f.type === "ineligible"))
+            continue
 
-    const newCount = (creatorCounts.get(entry.videoData.uploader) || 0) + 1
-    creatorCounts.set(creator_id, newCount)
-  }
+        const newCount = (creatorCounts.get(entry.videoData.uploader) || 0) + 1
+        creatorCounts.set(creator_id, newCount)
+    }
 
-  for (const entry of entryCopies) {
-    if (!entry.videoData)
-      continue
+    for (const entry of entryCopies) {
+        if (!entry.videoData)
+            continue
 
-    const creator_id = `${entry.videoData.uploader}-${entry.videoData.platform}`
-    const instances = creatorCounts.get(creator_id)!
+        const creator_id = `${entry.videoData.uploader}-${entry.videoData.platform}`
+        const instances = creatorCounts.get(creator_id)!
 
-    if (instances > 2 || instances === 2 && creatorCounts.size < 5)
-      entry.flags.push(cli_labels.no_simping)
-  }
+        if (instances > 2 || instances === 2 && creatorCounts.size < 5)
+            entry.flags.push(cli_labels.no_simping)
+    }
 
-  return {
-    uniqueCreators: creatorCounts.size,
-    eligible: entryCopies.filter(entry => entry.input && !entry.flags.some(f => f.type === "ineligible")),
-    checkedEntries: entryCopies
-  }
+    return {
+        uniqueCreators: creatorCounts.size,
+        eligible: entryCopies.filter(entry => entry.input && !entry.flags.some(f => f.type === "ineligible")),
+        checkedEntries: entryCopies
+    }
 }

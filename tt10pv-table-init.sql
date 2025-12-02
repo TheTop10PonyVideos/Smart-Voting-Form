@@ -23,7 +23,7 @@ CREATE TABLE ballot_item (
 	user_id TEXT NOT NULL,
 	video_id TEXT NOT NULL,
 	platform TEXT NOT NULL,
-	creation_date TIMESTAMP,
+	creation_date TIMESTAMP NOT NULL,
 	index INT NOT NULL,
 	PRIMARY KEY (user_id, index),
 	FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE,
@@ -65,12 +65,16 @@ CREATE TABLE manual_label (
 );
 
 -- Changes from previous version
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE INDEX trgm_idx ON video_metadata USING GIN (title gin_trgm_ops);
+UPDATE ballot_item
+SET creation_date = '2000-01-01'
+WHERE creation_date IS NULL;
 
-ALTER TABLE "user"
-DROP COLUMN last_active,
-DROP COLUMN last_ballot_update;
+ALTER TABLE ballot_item ALTER COLUMN creation_date SET NOT NULL;
 
-ALTER TABLE ballot_item
-ADD COLUMN creation_date TIMESTAMP;
+INSERT INTO label_config (name, type, details, trigger) VALUES (
+	'2a',
+	'maybe ineligible',
+	'Vote for last month''s videos based on your own time zone',
+	'Video may be too old or new'
+);
+-- also clear .next/cache and .next/dev/cache

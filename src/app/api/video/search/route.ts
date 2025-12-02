@@ -1,6 +1,6 @@
 import { APIVideoSearchResponseBody } from "@/lib/api/video";
 import { titleSearchMetadata } from "@/lib/queries/video";
-import { getEarliestEligibleDate, toClientVideoMetadata } from "@/lib/util";
+import { getEligibleRange, toClientVideoMetadata } from "@/lib/util";
 import { NextRequest } from "next/server";
 
 // Route for getting whitelisted videos that users can search by title for in the ballot
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     return new Response(null, { status: 400 })
 
   const results = (
-    await titleSearchMetadata(query, getEarliestEligibleDate())
+    await titleSearchMetadata(query, getEligibleRange()[0])
   ).map(toClientVideoMetadata)
   return Response.json({ search_results: results } satisfies APIVideoSearchResponseBody)
 }

@@ -3,8 +3,8 @@ import { prisma } from "../prisma";
 import { VideoPlatform, VideoStatusSettings } from "../types";
 
 
-export function getVideoMetadata(id: string, platform: VideoPlatform, with_annotation: boolean) {
-    return prisma.video_metadata.findUnique({
+export async function getVideoMetadata(id: string, platform: VideoPlatform, with_annotation: boolean) {
+    const metadata = await prisma.video_metadata.findUnique({
         where: {
             id_platform: {
                 id: id,
@@ -15,6 +15,14 @@ export function getVideoMetadata(id: string, platform: VideoPlatform, with_annot
             manual_label: with_annotation
         }
     })
+
+    if (metadata == null)
+        return metadata
+
+    const d = metadata.upload_date
+
+    metadata.upload_date = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
+    return metadata
 }
 
 
@@ -68,13 +76,13 @@ export async function updateVisibility(video_id: string, platform: VideoPlatform
 }
 
 
-export async function titleSearchMetadata(query: string, voting_period: Date, threshold = 0.6): Promise<video_metadata[]> {
+export async function titleSearchMetadata(query: string, voting_period_start: Date, threshold = 0.6): Promise<video_metadata[]> {
     const results: (video_metadata & {sim: number})[] = await prisma.$queryRaw`
     WITH v AS (
         SELECT *, word_similarity(${query}, title) AS sim
         FROM video_metadata
         WHERE whitelisted
-        AND upload_date >= ${voting_period}
+        AND upload_date >= ${voting_period_start}
     )
     SELECT *
     FROM v

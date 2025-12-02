@@ -108,16 +108,26 @@ export function getVotingPeriod(): [number, boolean] {
 }
 
 /**
- * Get the last date of the month prior to the voting period,
- * since some videos from the last day may be allowed
+ * Get the earliest and latest dates from which videos
+ * may be eligible to vote for, which include the last
+ * day of the month prior to the voting period, and the
+ * first day from the next month, since some exceptions
+ * are made because of timezone differences
  */
-export function getEarliestEligibleDate() {
+export function getEligibleRange(): [Date, Date] {
     const now = new Date(Date.now())
     const periodMonth = getVotingPeriod()[0]
 
-    return new Date(
-        now.getFullYear(),
-        now.getMonth() != periodMonth ? now.getMonth() - 1 : now.getMonth(),
-        0
-    )
+    return [
+        new Date(
+            now.getFullYear(),
+            now.getMonth() != periodMonth ? now.getMonth() - 1 : now.getMonth(),
+            0
+        ),
+        new Date(
+            now.getFullYear(),
+            now.getMonth() != periodMonth ? now.getMonth() : now.getMonth() + 1,
+            1
+        )
+    ]
 }
