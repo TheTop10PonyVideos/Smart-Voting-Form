@@ -1,13 +1,13 @@
 import { prisma } from "../prisma";
-import { getEligibleRange } from "../util";
+import { adjustDate, getEligibleRange } from "../util";
 
 
-export function getBallotItems(uid: string) {
+export async function getBallotItems(uid: string) {
     // Keep track of votes from after the previous voting week
     const cycle_cutoff_date = getEligibleRange()[0]
     cycle_cutoff_date.setDate(cycle_cutoff_date.getDate() + 7)
 
-    return prisma.ballot_item.findMany({
+    const ballot_items = await prisma.ballot_item.findMany({
         where: {
             user_id: uid, creation_date: { gt: cycle_cutoff_date }
         },
@@ -17,6 +17,9 @@ export function getBallotItems(uid: string) {
             }
         }
     })
+
+    ballot_items.forEach(b => adjustDate(b.video_metadata))
+    return ballot_items
 }
 
 

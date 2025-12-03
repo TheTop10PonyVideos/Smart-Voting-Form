@@ -131,3 +131,15 @@ export function getEligibleRange(): [Date, Date] {
         )
     ]
 }
+
+/**
+ * Date objects use local timezones which may show different dates from those stored in the database.
+ * This function is just to correct the misrepresentation of upload_date for wherever it's used
+ */
+export function adjustDate(v: video_metadata) {
+    v.upload_date = new Date(
+        v.upload_date.getUTCFullYear(),
+        v.upload_date.getUTCMonth(),
+        v.upload_date.getUTCDate()
+    )
+}

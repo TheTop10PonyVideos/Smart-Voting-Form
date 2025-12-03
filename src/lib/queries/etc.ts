@@ -1,5 +1,6 @@
 import { prisma } from "../prisma";
 import { Flag } from "../types";
+import { adjustDate } from "../util";
 
 
 export async function getAllData() {
@@ -39,7 +40,13 @@ export async function getPool() {
             orderBy: { ballot_item: { _count: "desc" } },
             take: 45
         })
-    ).map(v => ({ ...v, votes: v._count.ballot_item }))
+    ).map(v => {
+        adjustDate(v)
+        return {
+            ...v,
+            votes: v._count.ballot_item
+        }
+    })
 }
 
 

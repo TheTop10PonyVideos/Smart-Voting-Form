@@ -1,6 +1,7 @@
 import { video_metadata } from "@/generated/prisma";
 import { prisma } from "../prisma";
 import { VideoPlatform, VideoStatusSettings } from "../types";
+import { adjustDate } from "../util";
 
 
 export async function getVideoMetadata(id: string, platform: VideoPlatform, with_annotation: boolean) {
@@ -19,9 +20,7 @@ export async function getVideoMetadata(id: string, platform: VideoPlatform, with
     if (metadata == null)
         return metadata
 
-    const d = metadata.upload_date
-
-    metadata.upload_date = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
+    adjustDate(metadata)
     return metadata
 }
 
