@@ -5,11 +5,12 @@ import { adjustDate, getEligibleRange } from "../util";
 export async function getBallotItems(uid: string) {
     // Keep track of votes from after the previous voting week
     const cycle_cutoff_date = getEligibleRange()[0]
-    cycle_cutoff_date.setDate(cycle_cutoff_date.getDate() + 7)
+    cycle_cutoff_date.setDate(cycle_cutoff_date.getDate() + 8)
+    cycle_cutoff_date.setUTCHours(0)
 
     const ballot_items = await prisma.ballot_item.findMany({
         where: {
-            user_id: uid, creation_date: { gt: cycle_cutoff_date }
+            user_id: uid, creation_date: { gte: cycle_cutoff_date }
         },
         include: {
             video_metadata: {

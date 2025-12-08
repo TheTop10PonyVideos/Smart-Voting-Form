@@ -187,7 +187,7 @@ export default function VoteForm({ cli_labels, initial_entries, votingPeriod }: 
           <label>Voting for The Top 10 Pony Videos of {months[votingMonth]}</label>
           <p>
             This form is made to make voting easier by displaying video details with each vote and by checking their preliminary eligibility in advance.<br/><br/>
-            To submit your votes, first click the <b>Export Votes</b> button at the bottom. This will forward all your votes to the <a className={styles.link} href="https://docs.google.com/forms/d/e/1FAIpQLSdVi1gUmI8c2nBnYde7ysN8ZJ79EwI5WSBTbHKqIgC7js0PYg/viewform">main Google Form</a> where you can then submit them.<br/><br/>
+            To submit your votes, click the <b>Export Votes</b> button at the bottom. This will forward all your votes to the <a className={styles.link} href="https://docs.google.com/forms/d/e/1FAIpQLSdVi1gUmI8c2nBnYde7ysN8ZJ79EwI5WSBTbHKqIgC7js0PYg/viewform">main Google Form</a> where you can then submit them.<br/><br/>
             Note: Currently only basic checks are done, so be sure the videos&apos; content also aligns with the rules.<br/><br/>
             Symbol Meanings:<br/>
             ✅ = Eligible<br/>
