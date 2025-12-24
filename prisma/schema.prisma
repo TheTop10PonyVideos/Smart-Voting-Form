@@ -48,12 +48,12 @@ model video_metadata {
   platform      String
   whitelisted   Boolean         @default(false)
   source        String          @default("")
+  recent        Boolean
   ballot_item   ballot_item[]
   manual_label  manual_label?
   playlist_item playlist_item[]
 
   @@id([id, platform])
-  @@index([title(ops: raw("gin_trgm_ops"))], map: "trgm_idx", type: Gin)
 }
 
 model user {

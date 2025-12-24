@@ -1,10 +1,26 @@
+-- In database 'postgres'
+-- Reference: https://github.com/citusdata/pg_cron/blob/main/README.md
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+SELECT cron.schedule_in_database(
+	'update_recent_status',
+	'0 0 8 * *',
+    $$
+	UPDATE video_metadata
+	SET	recent = upload_date >= date_trunc('month', CURRENT_DATE) - interval '1 month' - interval '1 day'
+	WHERE upload_date >= date_trunc('month', CURRENT_DATE) - interval '4 month';
+	$$,
+    'smols_form'
+);
+
+
+-- In form database
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
-CREATE TABLE "user" (
+CREATE TABLE IF NOT EXISTS "user" (
 	id TEXT PRIMARY KEY
 );
 
-CREATE TABLE video_metadata (
+CREATE TABLE IF NOT EXISTS video_metadata (
 	id TEXT,
 	thumbnail TEXT NOT NULL,
 	title TEXT NOT NULL,
@@ -13,13 +29,17 @@ CREATE TABLE video_metadata (
 	upload_date DATE NOT NULL,
 	duration INT,
 	platform TEXT NOT NULL,
+	recent BOOL NOT NULL,
 	whitelisted BOOL NOT NULL DEFAULT FALSE,
 	source TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY (id, platform)
 );
-CREATE INDEX trgm_idx ON video_metadata USING GIN (title gin_trgm_ops);
 
-CREATE TABLE ballot_item (
+CREATE INDEX IF NOT EXISTS trgm_idx ON video_metadata
+USING GIN (title gin_trgm_ops)
+WHERE recent AND whitelisted;
+
+CREATE TABLE IF NOT EXISTS ballot_item (
 	user_id TEXT NOT NULL,
 	video_id TEXT NOT NULL,
 	platform TEXT NOT NULL,
@@ -30,7 +50,7 @@ CREATE TABLE ballot_item (
 	FOREIGN KEY (video_id, platform) REFERENCES video_metadata(id, platform) ON DELETE CASCADE
 );
 
-CREATE TABLE playlist (
+CREATE TABLE IF NOT EXISTS playlist (
 	id TEXT PRIMARY KEY,
 	owner_id TEXT,
 	thumbnail TEXT,
@@ -39,7 +59,7 @@ CREATE TABLE playlist (
 	last_accessed DATE
 );
 
-CREATE TABLE playlist_item (
+CREATE TABLE IF NOT EXISTS playlist_item (
 	id SERIAL PRIMARY KEY,
 	playlist_id TEXT NOT NULL,
 	video_id TEXT NOT NULL,
@@ -48,14 +68,14 @@ CREATE TABLE playlist_item (
 	FOREIGN KEY (video_id, platform) REFERENCES video_metadata(id, platform) ON DELETE CASCADE
 );
 
-CREATE TABLE label_config (
+CREATE TABLE IF NOT EXISTS label_config (
 	name TEXT NOT NULL,
 	type TEXT NOT NULL,
 	details TEXT NOT NULL,
 	trigger TEXT PRIMARY KEY
 );
 
-CREATE TABLE manual_label (
+CREATE TABLE IF NOT EXISTS manual_label (
 	video_id TEXT,
 	platform TEXT,
 	label TEXT NOT NULL,
@@ -65,16 +85,10 @@ CREATE TABLE manual_label (
 );
 
 -- Changes from previous version
-UPDATE ballot_item
-SET creation_date = '2000-01-01'
-WHERE creation_date IS NULL;
+ALTER TABLE video_metadata ADD COLUMN recent BOOL NOT NULL DEFAULT FALSE;
+ALTER TABLE video_metadata ALTER COLUMN recent DROP DEFAULT;
 
-ALTER TABLE ballot_item ALTER COLUMN creation_date SET NOT NULL;
-
-INSERT INTO label_config (name, type, details, trigger) VALUES (
-	'2a',
-	'maybe ineligible',
-	'Vote for last month''s videos based on your own time zone',
-	'Video may be too old or new'
-);
--- also clear .next/cache and .next/dev/cache
+DROP INDEX trgm_idx;
+CREATE INDEX trgm_idx ON video_metadata
+USING GIN (title gin_trgm_ops)
+WHERE recent AND whitelisted;

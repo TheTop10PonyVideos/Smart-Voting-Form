@@ -5,6 +5,7 @@ import { YTDLPItems, Flag, VideoPlatform } from "./types"
 import { getVideoMetadata, saveVideoMetadata } from "./queries/video"
 import { manual_label, video_metadata } from "@/generated/prisma"
 import { getLabels } from "./data_cache"
+import { getEligibleRange } from "./util"
 
 // Variants of youtube domains that might be used
 const youtube_domains = ["m.youtube.com", "www.youtube.com", "youtube.com", "youtu.be"]
@@ -153,6 +154,7 @@ async function from_youtube(url: URL, with_annotation: boolean): Promise<video_m
 
     const snippet = response_item["snippet"]
     const iso8601_duration = response_item["contentDetails"]["duration"]
+    const upload_date = new Date(snippet["publishedAt"])
 
     const video_data = {
         title: snippet["title"],
@@ -160,10 +162,13 @@ async function from_youtube(url: URL, with_annotation: boolean): Promise<video_m
         thumbnail: snippet.thumbnails.medium.url,
         uploader: snippet["channelTitle"],
         uploader_id: snippet["channelId"],
-        upload_date: new Date(snippet["publishedAt"]),
+        upload_date: upload_date,
         duration: convert_iso8601_duration_to_seconds(iso8601_duration),
         platform: "YouTube",
-    } as video_metadata
+        recent: upload_date >= getEligibleRange()[0],
+        whitelisted: false,
+        source: ''
+    } satisfies video_metadata
 
     await saveVideoMetadata(video_data)
     return  { ...video_data, manual_label: null }
@@ -260,17 +265,21 @@ async function from_other(url: URL, with_annotation: boolean): Promise<video_met
     }
 
     const date_str: string = response["upload_date"]
+    const upload_date = new Date(`${date_str.slice(0, 4)}-${date_str.slice(4, 6)}-${date_str.slice(6)}`)
 
     const video_data = {
         title: response["title"],
         id: video_db_id,
         thumbnail: response["thumbnail"] || "",
         uploader: response["uploader"],
-        uploader_id: response["uploader_id"],
-        upload_date: new Date(`${date_str.slice(0, 4)}-${date_str.slice(4, 6)}-${date_str.slice(6)}`),
+        uploader_id: response["uploader_id"]!,
+        upload_date: upload_date,
         duration: response["duration"] || null,
         platform: site.charAt(0).toUpperCase() + site.slice(1),
-    } as video_metadata
+        recent: upload_date >= getEligibleRange()[0],
+        whitelisted: false,
+        source: ''
+    } satisfies video_metadata
 
     await saveVideoMetadata(video_data)
     return { ...video_data, manual_label: null }
