@@ -51,9 +51,8 @@ export function getVideoLinkTemp(data: { platform: string, id: string, uploader_
 /**
  * Truncates and transforms video metadata to only what the client needs
  */
-export function toClientVideoMetadata(video_metadata: video_metadata): VideoDataClient {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { whitelisted, duration, upload_date, ...clientReceivable } = video_metadata
+export function toClientVideoMetadata(video_metadata: video_metadata, strip_data = true): VideoDataClient {
+    const clientReceivable = strip_data ? (({ whitelisted, duration, upload_date, recent, ...stripped }) => stripped)(video_metadata) : video_metadata
     const withLink = {...clientReceivable, link: getVideoLinkTemp(clientReceivable) }
     return withLink
 }

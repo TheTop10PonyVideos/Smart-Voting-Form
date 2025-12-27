@@ -12,6 +12,6 @@ export async function GET(req: NextRequest) {
 
   const results = (
     await titleSearchMetadata(query)
-  ).map(toClientVideoMetadata)
+  ).map(metadata => toClientVideoMetadata(metadata))
   return Response.json({ search_results: results } satisfies APIVideoSearchResponseBody)
 }

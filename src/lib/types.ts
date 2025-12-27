@@ -17,7 +17,7 @@ export type VideoPlatform =
     "Twitter" |
     "Vimeo"
 
-export type VideoDataClient = Omit<video_metadata, "upload_date" | "duration" | "whitelisted"> & { link: string }
+export type VideoDataClient = Omit<video_metadata, "upload_date" | "duration" | "whitelisted" | "recent"> & { link: string }
 
 export type VideoStatusSettings = "eligible" | "default" | "ineligible" | "reupload"
 

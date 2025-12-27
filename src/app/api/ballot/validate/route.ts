@@ -1,9 +1,9 @@
 import { fetch_metadata } from '@/lib/external'
-import { removeBallotItem, setBallotItem } from "@/lib/queries/ballot"
+import { removeBallotItem, setBallotItem } from '@/lib/queries/ballot'
 import { video_check } from '@/lib/vote_rules'
 import { NextRequest } from 'next/server'
-import { APIValidateRequestBody } from "@/lib/api/video"
-import { toClientVideoMetadata } from '@/lib/util'
+import { APIValidateRequestBody } from '@/lib/api/video'
+import { getVideoLinkTemp, toClientVideoMetadata } from '@/lib/util'
 
 // Route for checking an entry in the ballot against the rules, and saving its position
 export async function POST(req: NextRequest) {
@@ -23,6 +23,8 @@ export async function POST(req: NextRequest) {
     else
       await setBallotItem(uid, body.index!, metadata.id, metadata.platform)
   }
+  const all_data = (req.nextUrl.searchParams.get('all_data') || 'false').toLowerCase() === 'true'
+  const return_data = metadata && toClientVideoMetadata(metadata, !all_data)
 
-  return Response.json({ field_flags: flags, video_data: metadata && toClientVideoMetadata(metadata) })
+  return Response.json({ field_flags: flags, video_data: return_data })
 }
