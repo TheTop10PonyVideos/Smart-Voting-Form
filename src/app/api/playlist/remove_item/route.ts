@@ -1,20 +1,20 @@
 import { APIRemovePIRequestBody } from "@/lib/api/playlist";
 import { removePlaylistItem, getPlaylist } from "@/lib/queries/playlist";
 import { getUser } from "@/lib/queries/user";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 // Route for removing entries from playlists
 export async function POST(request: NextRequest) {
     const uid = request.cookies.get("uid")?.value
-    if (!uid) return new NextResponse()
+    if (!uid) return new Response()
 
     const user = await getUser(uid)
-    if (!user) return new NextResponse(null, { status: 400 })
+    if (!user) return new Response(null, { status: 400 })
 
     const body: APIRemovePIRequestBody = await request.json()
 
     if (typeof body.item_id !== "number")
-        return new NextResponse(null, { status: 400 })
+        return new Response(null, { status: 400 })
 
     const items = (await getPlaylist(body.playlist_id))?.playlist_item
 

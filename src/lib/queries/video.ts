@@ -65,7 +65,7 @@ export async function setSource(video_id: string, platform: VideoPlatform, annot
 }
 
 
-export async function updateVisibility(video_id: string, platform: VideoPlatform, whitelisted: boolean) {
+export async function updateWhitelist(video_id: string, platform: VideoPlatform, whitelisted: boolean) {
     return prisma.video_metadata.update({
         where: {
             id_platform: { id: video_id, platform }
